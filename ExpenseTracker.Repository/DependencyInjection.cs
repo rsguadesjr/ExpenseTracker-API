@@ -19,6 +19,7 @@ namespace ExpenseTracker.Repository
             services.AddScoped<IRepository<Expense>, ExpenseRepository>();
             services.AddScoped<IRepository<Category>, CategoryRepository>();
             services.AddScoped<IRepository<User>, UserRepository>();
+            services.AddScoped<IRepository<Source>, SourceRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
         }

@@ -32,7 +32,7 @@ namespace ExpenseTracker.Business
         }
 
         // TODO: Correct the UserId value
-        public async Task<IEnumerable<ExpenseListResult>> GetAll(BaseSearchParameter searchParam)
+        public async Task<PaginatedList<ExpenseListResult>> GetAll(BaseSearchParameter searchParam)
         {
             Expression< Func<Expense, bool>> predicate = v => v.UserId != null
                     && (searchParam.DateFrom == null || (searchParam.DateFrom <= v.ExpenseDate))
@@ -42,17 +42,26 @@ namespace ExpenseTracker.Business
 
             // query
             var query = _unitOfWork.ExpenseRepository.GetAll<ExpenseListResult>(predicate);
-            if (searchParam.PageNumber != null)
+            query = query.OrderByDescending(x => x.ExpenseDate);
+            var totalRows = query.Count();
+
+            if (searchParam.PageNumber != null && searchParam.TotalRows != null)
             {
-                query = query.Skip(searchParam.PageNumber.Value);
-            }
-            if (searchParam.TotalRows != null)
-            {
-                query = query.Take(searchParam.TotalRows.Value);
+                var take = searchParam.TotalRows > 0 ? searchParam.TotalRows.Value : 0;
+                var skip = searchParam.PageNumber > 0 ? (searchParam.PageNumber.Value * take) : 0;
+                query = query.Skip(skip);
+                query = query.Take(take);
             }
 
-            query = query.OrderByDescending(x => x.ExpenseDate);
-            return await query.ToListAsync();
+            var data = await query.ToListAsync();
+
+
+            return new PaginatedList<ExpenseListResult>
+            {
+                CurrentPage = searchParam.PageNumber,
+                TotalRows = totalRows,
+                Data = data
+            };
         }
 
         public async Task<ExpenseListResult> Create(ExpenseDto dto)

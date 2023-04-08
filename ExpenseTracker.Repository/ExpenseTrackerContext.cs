@@ -19,6 +19,7 @@ namespace ExpenseTracker.Repository
         public DbSet<Expense> Expenses { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<Source> Sources { get; set; }
 
         public async Task<int> SaveChangesAsync(DateTime? dateTime, Guid? userId)
         {
