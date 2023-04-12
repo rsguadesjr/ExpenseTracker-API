@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ExpenseTracker.Model.Entities;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.User;
 using ExpenseTracker.Repository.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;

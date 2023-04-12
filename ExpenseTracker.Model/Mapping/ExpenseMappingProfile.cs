@@ -1,6 +1,6 @@
 ﻿using AutoMapper;
 using ExpenseTracker.Model.Entities;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.Expense;
 using System;
 using System.Collections.Generic;
 using System.Linq;

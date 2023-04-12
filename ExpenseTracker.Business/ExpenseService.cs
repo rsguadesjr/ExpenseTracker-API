@@ -2,7 +2,8 @@
 using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Common;
 using ExpenseTracker.Model.Entities;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.Expense;
+using ExpenseTracker.Model.Models.User;
 using ExpenseTracker.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;

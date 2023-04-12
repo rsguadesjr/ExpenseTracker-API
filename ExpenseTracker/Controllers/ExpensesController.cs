@@ -1,6 +1,6 @@
 ﻿using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Common;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.Expense;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

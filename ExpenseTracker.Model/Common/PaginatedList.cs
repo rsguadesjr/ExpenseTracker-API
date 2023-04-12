@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Model.Models
+namespace ExpenseTracker.Model.Common
 {
     public class PaginatedList<T>
     {

@@ -1,5 +1,5 @@
 ﻿using ExpenseTracker.Model.Entities;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.User;
 using System;
 using System.Collections.Generic;
 using System.Linq;

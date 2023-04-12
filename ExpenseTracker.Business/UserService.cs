@@ -1,6 +1,6 @@
 ﻿using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Entities;
-using ExpenseTracker.Model.Models;
+using ExpenseTracker.Model.Models.User;
 using ExpenseTracker.Repository.Interfaces;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
