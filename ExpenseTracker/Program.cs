@@ -67,6 +67,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers().AddNewtonsoftJson(options =>
 {
     options.SerializerSettings.DateTimeZoneHandling = Newtonsoft.Json.DateTimeZoneHandling.Utc;
+    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
 var app = builder.Build();

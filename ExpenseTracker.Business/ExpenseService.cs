@@ -43,7 +43,7 @@ namespace ExpenseTracker.Business
 
             // query
             var query = _unitOfWork.ExpenseRepository.GetAll<ExpenseListResult>(predicate);
-            query = query.OrderByDescending(x => x.ExpenseDate);
+            query = query.OrderByDescending(x => x.ExpenseDate).ThenBy(x => x.CreatedDate);
             var totalRows = query.Count();
 
             if (searchParam.PageNumber != null && searchParam.TotalRows != null)

@@ -7,6 +7,7 @@ using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Security.Claims;
 using System.Text;
@@ -78,8 +79,48 @@ namespace ExpenseTracker.Business
             };
         }
 
-        public async Task Login()
+        public async Task<AuthRequestResult> Login(string token)
         {
+            var result = new AuthRequestResult();
+
+            try
+            {
+                var firebaseToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).VerifyIdTokenAsync(token);
+
+                // TODO: remove initialization here, other value will be in the else statement below
+                Guid userId = Guid.NewGuid();
+
+                var existingUser = await _userRepository.Get<UserVM>(x => x.UniqueId == firebaseToken.Uid);
+                if (existingUser != null)
+                {
+                    result.NeedToCompleteProfile = false;
+                    result.IsNewUser = false;
+                    userId = existingUser.Id;
+                }
+                else
+                {
+                    // TODO: add flag to check if new users will be auto registered
+                    // TODO: implement 
+                }
+
+                // create custom claims here
+                IReadOnlyDictionary<string, object> test = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
+                {
+                    { "userId", userId }
+                });
+                await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, test);
+                var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseToken.Uid);
+
+                result.Token = customToken;
+                result.IsAuthorized = true;
+            }
+            catch (Exception ex)
+            {
+                result.IsAuthorized = false;
+
+            }
+
+            return result;
         }
 
     }

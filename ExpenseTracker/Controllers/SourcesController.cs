@@ -1,4 +1,5 @@
 ﻿using ExpenseTracker.Business.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -6,6 +7,7 @@ namespace ExpenseTracker.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SourcesController : ControllerBase
     {
         private readonly ISourceService _sourceService;

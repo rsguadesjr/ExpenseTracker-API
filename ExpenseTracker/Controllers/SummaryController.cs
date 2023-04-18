@@ -6,6 +6,7 @@ namespace ExpenseTracker.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class SummaryController : ControllerBase
     {
         private readonly ISummaryService _summaryService;

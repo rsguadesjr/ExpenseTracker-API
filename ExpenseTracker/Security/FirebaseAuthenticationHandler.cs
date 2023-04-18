@@ -55,7 +55,7 @@ namespace ExpenseTracker.Security
             var email = claims["email"]?.ToString();
             var name = claims["name"]?.ToString();
             var uniqueId = claims["user_id"]?.ToString();
-            var userId = (await _userService.GetByEmail(email))?.Id;
+            var userId = claims["userId"]?.ToString();  //(await _userService.GetByEmail(email))?.Id;
             return new List<Claim>
             {
                 new Claim(ClaimTypes.Email, email ?? string.Empty),

@@ -9,6 +9,7 @@ namespace ExpenseTracker.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class ExpensesController : ControllerBase
     {
         private readonly IExpenseService _transactionService;
@@ -17,7 +18,6 @@ namespace ExpenseTracker.Controllers
             _transactionService= transactionService;
         }
 
-        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -35,7 +35,6 @@ namespace ExpenseTracker.Controllers
             return Ok(await _transactionService.GetAll(searchParam));
         }
 
-        [Authorize]
         [HttpPost]
         public async Task<IActionResult> Create(ExpenseDto dto)
         {
@@ -47,7 +46,6 @@ namespace ExpenseTracker.Controllers
             return Ok(await _transactionService.Create(dto));
         }
 
-        [Authorize]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] ExpenseDto dto)
         {

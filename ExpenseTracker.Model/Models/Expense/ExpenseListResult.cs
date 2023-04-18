@@ -13,6 +13,7 @@ namespace ExpenseTracker.Model.Models.Expense
         public string? Description { get; set; }
         public string Category { get; set; }
         public DateTime ExpenseDate { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public string? User { get; set; }
         public string Source { get; set; }
     }
