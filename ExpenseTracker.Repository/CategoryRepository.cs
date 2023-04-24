@@ -23,5 +23,6 @@ namespace ExpenseTracker.Repository
             
             return entity;
         }
+
     }
 }

@@ -14,17 +14,15 @@ namespace ExpenseTracker.Business
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
-        private readonly IRepository<User> _userRepository;
-        private readonly IUserService _userService;
+        private readonly IUserRepository _userRepository;
         public ExpenseService(IUnitOfWork unitOfWork,
-                            IRepository<User> userRepository,
+                            IUserRepository userRepository,
                                     IMapper mapper,
                                     IUserService userService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userRepository = userRepository;
-            _userService = userService;
         }
 
         public async Task<ExpenseDto> Get(Guid id)
@@ -72,16 +70,11 @@ namespace ExpenseTracker.Business
                 try
                 {
                     var transactionDate = DateTime.UtcNow;
-
-
-
-                    // TODO: need to update this part
-                    var userId = Guid.Parse("1bd17662-e014-43d4-b380-097acd2c2ae6");
-                    var user = await _userRepository.Get<UserVM>(x => x.Id == userId);
-
+                    var user = _userRepository.GetCurrentUser();
 
                     var expense = _mapper.Map<Expense>(dto);
-                    expense.UserId= userId;
+                    expense.UserId= user.UserId;
+
                     var result = await _unitOfWork.ExpenseRepository.Create(expense);
                     dto.Id = result.Id;
                 

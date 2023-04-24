@@ -35,5 +35,19 @@ namespace ExpenseTracker.Repository
 
             return expense;
         }
+
+
+        public async Task GetTotalPerCategory(Guid userId)
+        {
+            var test = _context.Expenses.Where(x => x.UserId == userId)
+                            .GroupBy(x => x.CategoryId)
+                            .Select(x => new
+                            {
+                                test = x.First().Id,
+                                s = x.Key
+
+                            });
+
+        }
     }
 }
