@@ -5,6 +5,7 @@ using ExpenseTracker.Repository.Interfaces;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,11 +20,14 @@ namespace ExpenseTracker.Business
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRepository _userRepository;
+        private readonly IConfiguration _configuration;
         public UserService(IHttpContextAccessor httpContextAccessor,
-                            IUserRepository userRepository)
+                            IUserRepository userRepository,
+                            IConfiguration configuration)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
+            _configuration = configuration;
         }
 
         public Task<UserVM> Get(Guid id)

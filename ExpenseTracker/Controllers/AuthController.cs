@@ -2,6 +2,7 @@
 using ExpenseTracker.Model.Models.User;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 
 namespace ExpenseTracker.Controllers
 {
@@ -10,9 +11,11 @@ namespace ExpenseTracker.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        public AuthController(IUserService userService)
+        private IConfiguration _configuration;
+        public AuthController(IUserService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
         }
 
         [HttpPost("[action]")]
@@ -21,6 +24,18 @@ namespace ExpenseTracker.Controllers
 
             return Ok(await _userService.Login(token.Token));
         }
+
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetSettings()
+        {
+            var test = new
+            {
+                test = _configuration.GetConnectionString("DefaultConnection")
+            };
+            return Ok(test);
+        }
+
 
     }
 }

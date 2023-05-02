@@ -11,6 +11,10 @@ using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true);
+
 // Add services to the container.
 IdentityModelEventSource.ShowPII = true;
 
@@ -27,21 +31,6 @@ if (FirebaseApp.DefaultInstance == null)
     });
 }
 
-////var firebaseid = "rsg-expense-tracker";
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddJwtBearer(opt =>
-//    {
-//        opt.IncludeErrorDetails = true;
-//        opt.Authority = $"https://securetoken.google.com/{firebaseid}";
-//        opt.TokenValidationParameters = new TokenValidationParameters
-//        {
-//            ValidateIssuer = true,
-//            ValidIssuer = $"https://securetoken.google.com/{firebaseid}",
-//            ValidateAudience = true,
-//            ValidAudience = firebaseid,
-//            ValidateLifetime = true
-//        };
-//    });
 
 //var firebaseid = "rsg-expense-tracker";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -50,15 +39,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     } );
 
 
+var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
 ExpenseTracker.Model.DependencyInjection.Initialize(builder.Services);
 ExpenseTracker.Business.DependencyInjection.Initialize(builder.Services);
 ExpenseTracker.Repository.DependencyInjection.Initialize(builder.Services, builder.Configuration);
 
+
+var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? new string[] { };
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowedOrigins", b =>
     {
-        b.WithOrigins("http://localhost:4200")
+        b.WithOrigins(allowedOrigins)
                .AllowAnyMethod()
                .AllowAnyHeader();
     });

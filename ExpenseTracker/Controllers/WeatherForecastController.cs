@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ExpenseTracker.Controllers
@@ -12,10 +13,11 @@ namespace ExpenseTracker.Controllers
     };
 
         private readonly ILogger<WeatherForecastController> _logger;
-
-        public WeatherForecastController(ILogger<WeatherForecastController> logger)
+        private IConfiguration _configuration;
+        public WeatherForecastController(ILogger<WeatherForecastController> logger, IConfiguration configuration)
         {
             _logger = logger;
+            _configuration = configuration;
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
@@ -29,5 +31,16 @@ namespace ExpenseTracker.Controllers
             })
             .ToArray();
         }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetSettings()
+        {
+            var test = new
+            {
+                test = _configuration.GetConnectionString("DefaultConnection")
+            };
+            return Ok(test);
+        }
+
     }
 }
