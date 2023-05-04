@@ -26,9 +26,10 @@ namespace ExpenseTracker.Repository
         }
 
         public abstract Task<T> Update(T entity);
-        public virtual Task<T> Delete(dynamic id)
+        public virtual async Task Delete(dynamic id)
         {
-            throw new NotImplementedException();
+            T t = await _context.Set<T>().FindAsync(id);
+            _context.Set<T>().Remove(t);
         }
 
         public virtual IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate)

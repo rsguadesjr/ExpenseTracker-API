@@ -118,7 +118,19 @@ namespace ExpenseTracker.Business
 
         public async Task Delete(Guid id)
         {
-
+            using (await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    await _unitOfWork.ExpenseRepository.Delete(id);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                }
+            }
         }
     }
 }

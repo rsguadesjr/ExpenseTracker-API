@@ -12,7 +12,7 @@ namespace ExpenseTracker.Repository.Interfaces
     {
         Task<T> Create(T entity);
         abstract Task<T> Update(T entity);
-        Task<T> Delete(dynamic id);
+        Task Delete(dynamic id);
         Task<D> Get<D>(Expression<Func<T, bool>> predicate);
         IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate);
         Task SaveChanges();
