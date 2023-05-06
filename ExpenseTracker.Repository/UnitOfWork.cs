@@ -13,10 +13,12 @@ namespace ExpenseTracker.Repository
 {
     public class UnitOfWork : IUnitOfWork
     {
+        private ExpenseTrackerContext _context;
         private IRepository<Category> _categoryRepository;
         private IRepository<Expense> _expenseRepository;
+        private IRepository<Tag> _tagRepository;
+        private IRepository<ExpenseTag> _expenseTagRepository;
         private IUserRepository _userRepository;
-        private ExpenseTrackerContext _context;
         private IMapper _mapper;
         private IHttpContextAccessor _httpContext;
         public UnitOfWork(ExpenseTrackerContext context, IMapper mapper, IHttpContextAccessor httpContext)
@@ -89,6 +91,32 @@ namespace ExpenseTracker.Repository
                 }
 
                 return _userRepository;
+            }
+        }
+
+        public IRepository<Tag> TagRepository
+        {
+            get
+            {
+                if (_tagRepository == null)
+                {
+                    _tagRepository = new TagRepository(_context, _mapper);
+                }
+
+                return _tagRepository;
+            }
+        }
+
+        public IRepository<ExpenseTag> ExpenseTagRepository
+        {
+            get
+            {
+                if (_expenseTagRepository == null)
+                {
+                    _expenseTagRepository = new ExpenseTagRepository(_context, _mapper);
+                }
+
+                return _expenseTagRepository;
             }
         }
     }

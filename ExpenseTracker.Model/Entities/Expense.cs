@@ -24,6 +24,7 @@ namespace ExpenseTracker.Model.Entities
         public Guid? CreatedById { get; set; }
         public DateTime? ModifiedDate { get; set; }
         public Guid? ModifiedById { get; set; }
+        public ICollection<ExpenseTag> ExpenseTags { get; set; }
 
     }
 }

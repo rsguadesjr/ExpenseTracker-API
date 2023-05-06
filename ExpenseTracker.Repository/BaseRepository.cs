@@ -32,11 +32,27 @@ namespace ExpenseTracker.Repository
             _context.Set<T>().Remove(t);
         }
 
+        public virtual async Task Delete(T entity)
+        {
+            _context.Set<T>().Remove(entity);
+        }
+        public virtual async Task Delete(List<T> entities)
+        {
+            _context.Set<T>().RemoveRange(entities);
+        }
+
         public virtual IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate)
         {
             return _context.Set<T>()
                 .Where(predicate)
                 .ProjectTo<D>(_mapper.ConfigurationProvider)
+                .AsQueryable();
+        }
+
+        public virtual IQueryable<T> GetAll(Expression<Func<T, bool>> predicate)
+        {
+            return _context.Set<T>()
+                .Where(predicate)
                 .AsQueryable();
         }
 
@@ -46,6 +62,14 @@ namespace ExpenseTracker.Repository
                 .AsQueryable()
                 .Where(predicate)
                 .ProjectTo<D>(_mapper.ConfigurationProvider)
+                .FirstOrDefaultAsync();
+        }
+
+        public virtual async Task<T> Get(Expression<Func<T, bool>> predicate)
+        {
+            return await _context.Set<T>()
+                .AsQueryable()
+                .Where(predicate)
                 .FirstOrDefaultAsync();
         }
 

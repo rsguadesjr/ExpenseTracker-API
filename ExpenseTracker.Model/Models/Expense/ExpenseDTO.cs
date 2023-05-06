@@ -16,5 +16,6 @@ namespace ExpenseTracker.Model.Models.Expense
         public DateTime ExpenseDate { get; set; }
         public int? SourceId { get; set; }
         public string? Source { get; set; }
+        public List<string> Tags { get; set; } = new List<string>();
     }
 }

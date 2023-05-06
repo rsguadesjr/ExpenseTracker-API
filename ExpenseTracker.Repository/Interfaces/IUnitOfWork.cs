@@ -19,5 +19,7 @@ namespace ExpenseTracker.Repository.Interfaces
 
         public IRepository<Category> CategoryRepository { get; }
         public IRepository<Expense> ExpenseRepository { get; }
+        public IRepository<Tag> TagRepository { get; }
+        public IRepository<ExpenseTag> ExpenseTagRepository { get; }
     }
 }

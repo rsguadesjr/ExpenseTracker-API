@@ -13,8 +13,12 @@ namespace ExpenseTracker.Repository.Interfaces
         Task<T> Create(T entity);
         abstract Task<T> Update(T entity);
         Task Delete(dynamic id);
+        Task Delete(T entity);
+        Task Delete(List<T> entities);
         Task<D> Get<D>(Expression<Func<T, bool>> predicate);
+        Task<T> Get(Expression<Func<T, bool>> predicate);
         IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate);
+        IQueryable<T> GetAll(Expression<Func<T, bool>> predicate);
         Task SaveChanges();
         Task ExecuteStoredProcedure(string storedProcedureName, Dictionary<string, object> parameters);
         Task<List<D>> ExecuteStoredProcedure<D>(string storedProcedureName, Dictionary<string, object> parameters);
