@@ -81,7 +81,6 @@ namespace ExpenseTracker.Business
                     var result = await _unitOfWork.ExpenseRepository.Create(expense);
                     dto.Id = result.Id;
 
-
                     await AddOrDeleteTags(dto.Id.Value, dto.Tags);
 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
@@ -109,55 +108,7 @@ namespace ExpenseTracker.Business
                     var result = await _unitOfWork.ExpenseRepository.Update(_mapper.Map<Expense>(dto));
                     dto.Id = result.Id;
 
-
                     await AddOrDeleteTags(dto.Id.Value, dto.Tags);
-
-                    //// get existing tags
-                    //var existingTags = await _unitOfWork.ExpenseTagRepository.GetAll(x => x.ExpenseId == dto.Id)
-                    //                                                        .Include(x => x.Tag)
-                    //                                                        .ToListAsync();
-                    //// remove existing tags if not in current list
-                    //var toRemoveTags = existingTags.Where(x => !dto.Tags.Contains(x.Tag.Name)).ToList();
-                    //if (toRemoveTags.Any())
-                    //{
-                    //    await _unitOfWork.ExpenseTagRepository.Delete(toRemoveTags);
-                    //}
-
-                    //// add new tags if not yet in db
-                    //var existingTagNames = existingTags.Select(x => x.Tag.Name);
-                    //var toAddTags = dto.Tags.Where(x => !existingTagNames.Contains(x)).ToList();
-                    //foreach (var tag in toAddTags)
-                    //{
-                    //    var expenseTag = new ExpenseTag { ExpenseId = dto.Id.Value };
-                    //    // get tagId
-                    //    int? tagId = (await _unitOfWork.TagRepository.Get(x => x.Name == tag))?.Id;
-                    //    if (tagId != null)
-                    //    {
-                    //        expenseTag.TagId = tagId.Value;
-                    //    }
-                    //    else
-                    //    {
-                    //        expenseTag.Tag = new Tag { Name = tag };
-                    //    }
-
-                    //    // add expense tag relationship
-                    //    //var expenseTag = new ExpenseTag { TagId = tagId.Value, ExpenseId = dto.Id.Value };
-                    //    await _unitOfWork.ExpenseTagRepository.Create(expenseTag);
-                    //}
-                    ////toAddTags.ForEach(async tag =>
-                    ////{
-                    ////    // get tagId
-                    ////    int? tagId = (await _unitOfWork.TagRepository.Get(x => x.Name == tag))?.Id;
-                    ////    if (tagId == null)
-                    ////    {
-                    ////        tagId = (await _unitOfWork.TagRepository.Create(new Tag { Name = tag })).Id;
-                    ////    }
-
-                    ////    // add expense tag relationship
-                    ////    var expenseTag = new ExpenseTag { TagId = tagId.Value, ExpenseId = dto.Id.Value };
-                    ////    await _unitOfWork.ExpenseTagRepository.Create(expenseTag);
-
-                    ////});
 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
                     await _unitOfWork.CommitTransactionAsync();
