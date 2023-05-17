@@ -10,6 +10,7 @@ namespace ExpenseTracker.Business.Interfaces
     public interface ISummaryService
     {
         Task<List<TotalPerCategory>> GetTotalAmountPerCategory(DateTime startDate, DateTime endDate);
+        Task<List<TotalPerTag>> GetTotalAmountPerTag(DateTime startDate, DateTime endDate);
         Task<List<MonthlySummaryByYearResult>> GetSummaryByDateRange(DateTime startDate, DateTime endDate);
         Task<List<MonthlySummaryByYearResult>> GetMonthlySummaryByYear(int year);
         Task<List<DailyTotalAmount>> GetDailyTotalByDateRange(DateTime startDate, DateTime endDate);

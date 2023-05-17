@@ -12,6 +12,7 @@ namespace ExpenseTracker.Business.Interfaces
         Task<UserVM> Get(Guid id);
         Task<UserVM> GetByEmail(string email);
         Task<UserRegistrationResponse> Register();
+        Task<AuthRequestResult> Register(EmailPasswordRegistrationRequest requestData);
         Task<AuthRequestResult> Login(string token);
     }
 }

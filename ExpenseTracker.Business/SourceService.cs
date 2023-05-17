@@ -14,15 +14,24 @@ namespace ExpenseTracker.Business
     internal class SourceService : ISourceService
     {
         private readonly IRepository<Source> _sourceRepository;
+        private readonly IUserRepository _userRepository;
 
-        public SourceService(IRepository<Source> sourceRepository)
+        public SourceService(IRepository<Source> sourceRepository,
+                                    IUserRepository userRepository)
         {
             _sourceRepository = sourceRepository;
+            _userRepository = userRepository;
         }
 
         public async Task<List<Option>> GetAll()
-        {
-            var result = _sourceRepository.GetAll<Option>(x => x.Id != 0);
+        {// Get current user
+            var currentUser = _userRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                throw new ApplicationException("User not found");
+            }
+
+            var result = _sourceRepository.GetAll<Option>(x => x.UserId == currentUser.UserId);
             return await result.ToListAsync();
         }
     }

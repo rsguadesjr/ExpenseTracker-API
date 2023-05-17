@@ -1,15 +1,18 @@
 ﻿using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Entities;
 using ExpenseTracker.Model.Models.User;
+using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Interfaces;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Linq.Dynamic.Core.Tokenizer;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,13 +24,16 @@ namespace ExpenseTracker.Business
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
+        private readonly IUnitOfWork _unitOfWork;
         public UserService(IHttpContextAccessor httpContextAccessor,
                             IUserRepository userRepository,
-                            IConfiguration configuration)
+                            IConfiguration configuration,
+                            IUnitOfWork unitOfWork)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
             _configuration = configuration;
+            _unitOfWork = unitOfWork;
         }
 
         public Task<UserVM> Get(Guid id)
@@ -82,6 +88,72 @@ namespace ExpenseTracker.Business
                 EmailVerificationLink = emailVerificationLink
             };
         }
+        public async Task<AuthRequestResult> Register(EmailPasswordRegistrationRequest requestData)
+        {
+            var result = new AuthRequestResult();
+            using (await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    if (string.IsNullOrWhiteSpace(requestData.Email)
+                    || string.IsNullOrWhiteSpace(requestData.Password)
+                    || string.IsNullOrWhiteSpace(requestData.DisplayName))
+                    {
+                        throw new ApplicationException("Invalid request model.");
+                    }
+
+                    // create user record to firebase
+                    UserRecordArgs userRecord = new UserRecordArgs
+                    {
+                        Email = requestData.Email.Trim(),
+                        Password = requestData.Password.Trim(),
+                        DisplayName = requestData.DisplayName.Trim()
+
+                    };
+                    var firebaseUser = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateUserAsync(userRecord);
+
+                    // save to db
+                    var user = new User
+                    {
+                        Id = Guid.NewGuid(),
+                        Email = firebaseUser.Email,
+                        DisplayName = firebaseUser.DisplayName,
+                        UniqueId = firebaseUser.Uid,
+                    };
+                    await _userRepository.Create(user);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    var parameters = new Dictionary<string, object>
+                    {
+                        { "UserId", user.Id },
+                    };
+                    await _userRepository.ExecuteStoredProcedure("CreateUserDefaults", parameters);
+
+
+                    IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
+                    {
+                        { "userId", user.Id }
+                    });
+                    await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseUser.Uid, customClaims);
+                    var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseUser.Uid);
+
+                    result.Token = customToken;
+                    result.IsAuthorized = true;
+
+                }
+                catch (Exception ex)
+                {
+                    result.IsAuthorized = false;
+                    await _unitOfWork.RollbackTransactionAsync();
+                }
+            }
+
+
+            return result;
+            
+        }
+
 
         public async Task<AuthRequestResult> Login(string token)
         {
@@ -108,11 +180,11 @@ namespace ExpenseTracker.Business
                 }
 
                 // create custom claims here
-                IReadOnlyDictionary<string, object> test = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
+                IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
                 {
                     { "userId", userId }
                 });
-                await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, test);
+                await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, customClaims);
                 var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseToken.Uid);
 
                 result.Token = customToken;

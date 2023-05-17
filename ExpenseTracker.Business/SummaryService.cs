@@ -36,6 +36,18 @@ namespace ExpenseTracker.Business
             return await _expenseRepository.ExecuteStoredProcedure<TotalPerCategory>("GetTotalAmountPerCategoryByDateRange", parameters);
         }
 
+        public async Task<List<TotalPerTag>> GetTotalAmountPerTag(DateTime startDate, DateTime endDate)
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "StartDate", startDate },
+                { "EndDate", endDate },
+                { "UserId", _currentUser.UserId }
+
+            };
+            return await _expenseRepository.ExecuteStoredProcedure<TotalPerTag>("GetTotalAmountPerTagByDateRange", parameters);
+        }
+
         public async Task<List<MonthlySummaryByYearResult>> GetSummaryByDateRange(DateTime startDate, DateTime endDate)
         {
             var parameters = new Dictionary<string, object>

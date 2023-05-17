@@ -33,11 +33,19 @@ namespace ExpenseTracker.Business
         // TODO: Correct the UserId value
         public async Task<PaginatedList<ExpenseListResult>> GetAll(BaseSearchParameter searchParam)
         {
-            Expression< Func<Expense, bool>> predicate = v => v.UserId != null
+            // Get current user
+            var currentUser = _userRepository.GetCurrentUser();
+            if (currentUser == null)
+            {
+                throw new ApplicationException("User not found");
+            }
+
+            Expression<Func<Expense, bool>> predicate = v => v.UserId != null
                     && (searchParam.DateFrom == null || (searchParam.DateFrom <= v.ExpenseDate))
                     && (searchParam.DateTo == null || (v.ExpenseDate <= searchParam.DateTo))
                     && (searchParam.CategoryId == null || searchParam.CategoryId == v.CategoryId)
-                    && (searchParam.SourceId == null || searchParam.SourceId == v.SourceId);
+                    && (searchParam.SourceId == null || searchParam.SourceId == v.SourceId)
+                    && (currentUser.UserId == v.UserId);
 
             // query
             var query = _unitOfWork.ExpenseRepository.GetAll<ExpenseListResult>(predicate);

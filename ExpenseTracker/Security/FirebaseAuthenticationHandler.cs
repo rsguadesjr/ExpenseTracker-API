@@ -37,6 +37,23 @@ namespace ExpenseTracker.Security
                 string token = bearerToken.Substring("Bearer ".Length);
                 var firebaseToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).VerifyIdTokenAsync(token);
                 var claims = await ToClaims(firebaseToken.Claims);
+
+                // Make sure current request have the UserId, if not populate
+                // this should only happen once, since claims coming from firebase will contain this custom claim in subsequent tokens
+                var email = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
+                var userId = claims.FirstOrDefault(x => x.Type == "UserId")?.Value;
+                if (string.IsNullOrEmpty(userId))
+                {
+                    var dbUser = await _userService.GetByEmail(email);
+                    if (dbUser == null)
+                    {
+                        return AuthenticateResult.Fail("Invalid user");
+                    }
+                    else
+                    {
+                        claims.Add(new Claim("UserId", dbUser.Id.ToString()));
+                    }
+                }
  
                 return AuthenticateResult.Success(new AuthenticationTicket(new ClaimsPrincipal(new List<ClaimsIdentity>
                 {
@@ -50,7 +67,7 @@ namespace ExpenseTracker.Security
             }
         }
 
-        private async Task<IEnumerable<Claim>> ToClaims(IReadOnlyDictionary<string, object> claims)
+        private async Task<List<Claim>> ToClaims(IReadOnlyDictionary<string, object> claims)
         {
             var email = claims["email"]?.ToString();
             var name = claims["name"]?.ToString();

@@ -26,6 +26,14 @@ namespace ExpenseTracker.Controllers
         }
 
 
+        [HttpPost("[action]")]
+        public async Task<IActionResult> RegisterWithEmailAndPassword([FromBody] EmailPasswordRegistrationRequest request)
+        {
+
+            return Ok(await _userService.Register(request));
+        }
+
+
         [HttpGet("[action]")]
         public async Task<IActionResult> GetSettings()
         {
