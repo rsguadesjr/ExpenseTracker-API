@@ -21,5 +21,7 @@ namespace ExpenseTracker.Repository.Interfaces
         public IRepository<Expense> ExpenseRepository { get; }
         public IRepository<Tag> TagRepository { get; }
         public IRepository<ExpenseTag> ExpenseTagRepository { get; }
+        public IRepository<Reminder> ReminderRepository { get; }
+        public IRepository<ReminderRepeat> ReminderRepeatRepository { get; }
     }
 }

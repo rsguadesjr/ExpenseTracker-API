@@ -12,10 +12,10 @@ namespace ExpenseTracker.Controllers
     [Authorize]
     public class ExpensesController : ControllerBase
     {
-        private readonly IExpenseService _transactionService;
-        public ExpensesController(IExpenseService transactionService)
+        private readonly IExpenseService _expenseService;
+        public ExpensesController(IExpenseService expenseService)
         {
-            _transactionService= transactionService;
+            _expenseService= expenseService;
         }
 
         [HttpGet("{id}")]
@@ -26,13 +26,13 @@ namespace ExpenseTracker.Controllers
                 return BadRequest();
             }
 
-            return Ok(await _transactionService.Get(id));
+            return Ok(await _expenseService.Get(id));
         }
 
         [HttpPost("[action]")]
         public async Task<IActionResult> GetExpenses([FromBody] BaseSearchParameter searchParam)
         {
-            return Ok(await _transactionService.GetAll(searchParam));
+            return Ok(await _expenseService.GetAll(searchParam));
         }
 
         [HttpPost]
@@ -43,7 +43,7 @@ namespace ExpenseTracker.Controllers
                 return BadRequest();
             }
 
-            return Ok(await _transactionService.Create(dto));
+            return Ok(await _expenseService.Create(dto));
         }
 
         [HttpPut("{id}")]
@@ -54,7 +54,7 @@ namespace ExpenseTracker.Controllers
                 return BadRequest();
             }
 
-            return Ok(await _transactionService.Update(dto));
+            return Ok(await _expenseService.Update(dto));
         }
 
         [HttpDelete("{id}")]
@@ -65,7 +65,7 @@ namespace ExpenseTracker.Controllers
                 return BadRequest();
             }
 
-            await _transactionService.Delete(id);
+            await _expenseService.Delete(id);
             return Ok();
         }
 

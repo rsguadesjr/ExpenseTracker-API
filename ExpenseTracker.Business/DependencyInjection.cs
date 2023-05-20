@@ -18,6 +18,7 @@ namespace ExpenseTracker.Business
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISourceService, SourceService>();
             services.AddScoped<ISummaryService, SummaryService>();
+            services.AddScoped<IReminderService, ReminderService>();
         }
     }
 }
