@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ExpenseTracker.Model.Common;
 using ExpenseTracker.Model.Entities;
+using ExpenseTracker.Model.Models.Category;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,6 +15,8 @@ namespace ExpenseTracker.Model.Mapping
         public CategoryMappingProfile()
         {
             CreateMap<Category, Option>();
+            CreateMap<Category, CategoryResponseModel>();
+            CreateMap<CategoryRequestModel, Category>();
         }
     }
 }

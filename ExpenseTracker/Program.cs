@@ -33,7 +33,8 @@ if (FirebaseApp.DefaultInstance == null)
 
 
 //var firebaseid = "rsg-expense-tracker";
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, opt =>
     {
     } );

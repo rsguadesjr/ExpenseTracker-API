@@ -1,4 +1,7 @@
 ﻿using ExpenseTracker.Business.Interfaces;
+using ExpenseTracker.Model.Common;
+using ExpenseTracker.Model.Models.Category;
+using ExpenseTracker.Model.Models.Expense;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,5 +26,37 @@ namespace ExpenseTracker.Controllers
             return Ok(await _categoryService.GetAll());
         }
 
+        [HttpPost]
+        public async Task<IActionResult> Create(CategoryRequestModel data)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            return Ok(await _categoryService.Create(data));   
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryRequestModel data)
+        {
+            if (!ModelState.IsValid || id != data.Id)
+            {
+                return BadRequest();
+            }
+
+            return Ok(await _categoryService.Update(data));
+        }
+
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Sort(List<SortItem> data)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
     }
 }

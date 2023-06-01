@@ -20,6 +20,7 @@ namespace ExpenseTracker.Repository
             var category = await _context.Categories.SingleAsync(x => x.Id == entity.Id);
             category.Name = entity.Name;
             category.Description = entity.Description;
+            category.IsActive = entity.IsActive;
             
             return entity;
         }

@@ -27,6 +27,7 @@ namespace ExpenseTracker.Repository
             reminder.Amount = entity.Amount;
             reminder.CategoryId = entity.CategoryId;
             reminder.SourceId = entity.SourceId;
+            reminder.Tags = entity.Tags;
 
             return entity;
         }
