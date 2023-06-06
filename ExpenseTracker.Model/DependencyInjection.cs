@@ -20,6 +20,7 @@ namespace ExpenseTracker.Model
                 mc.AddProfile(new CategoryMappingProfile());
                 mc.AddProfile(new SourceMappingProfile());
                 mc.AddProfile(new ReminderMappingProfile());
+                mc.AddProfile(new BudgetMappingProfile());
             });
             var mapper = mapperConfig.CreateMapper();
             services.AddSingleton(mapper);

@@ -26,6 +26,8 @@ namespace ExpenseTracker.Repository
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRepository<Reminder>, ReminderRepository>();
             services.AddScoped<IRepository<ReminderRepeat>, ReminderRepeatRepository>();
+            services.AddScoped<IRepository<Budget>, BudgetRepository>();
+            services.AddScoped<IRepository<BudgetCategory>, BudgetCategoryRepository>();
         }
     }
 }

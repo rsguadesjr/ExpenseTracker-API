@@ -20,6 +20,9 @@ namespace ExpenseTracker.Repository
         private IRepository<ExpenseTag> _expenseTagRepository;
         public IRepository<Reminder> _reminderRepository { get; set; }
         public IRepository<ReminderRepeat> _reminderRepeatRepository { get; set; }
+        public IRepository<Budget> _budgetRepository;
+        public IRepository<BudgetCategory> _budgetCategoryRepository;
+
         private IUserRepository _userRepository;
         private IMapper _mapper;
         private IHttpContextAccessor _httpContext;
@@ -145,6 +148,32 @@ namespace ExpenseTracker.Repository
                 }
 
                 return _reminderRepeatRepository;
+            }
+        }
+
+        public IRepository<Budget> BudgetRepository
+        {
+            get
+            {
+                if (_budgetRepository == null)
+                {
+                    _budgetRepository = new BudgetRepository(_context, _mapper);
+                }
+
+                return _budgetRepository;
+            }
+        }
+
+        public IRepository<BudgetCategory> BudgetCategoryRepository
+        {
+            get
+            {
+                if (_budgetCategoryRepository == null)
+                {
+                    _budgetCategoryRepository = new BudgetCategoryRepository(_context, _mapper);
+                }
+
+                return _budgetCategoryRepository;
             }
         }
     }
