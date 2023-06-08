@@ -32,6 +32,7 @@ namespace ExpenseTracker.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> GetExpenses([FromBody] BaseSearchParameter searchParam)
         {
+            //return Unauthorized();
             return Ok(await _expenseService.GetAll(searchParam));
         }
 

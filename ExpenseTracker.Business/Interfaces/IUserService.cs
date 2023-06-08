@@ -14,5 +14,6 @@ namespace ExpenseTracker.Business.Interfaces
         Task<UserRegistrationResponse> Register();
         Task<AuthRequestResult> Register(EmailPasswordRegistrationRequest requestData);
         Task<AuthRequestResult> Login(string token);
+        Task<AuthRequestResult> Login(AuthRequest auth);
     }
 }

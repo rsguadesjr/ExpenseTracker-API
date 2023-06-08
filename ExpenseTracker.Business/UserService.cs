@@ -5,12 +5,15 @@ using ExpenseTracker.Repository;
 using ExpenseTracker.Repository.Interfaces;
 using FirebaseAdmin;
 using FirebaseAdmin.Auth;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Linq.Dynamic.Core.Tokenizer;
 using System.Security.Claims;
@@ -163,15 +166,26 @@ namespace ExpenseTracker.Business
             {
                 var firebaseToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).VerifyIdTokenAsync(token);
 
+                var firebaseClaims = firebaseToken.Claims;
+
                 // TODO: remove initialization here, other value will be in the else statement below
                 Guid userId = Guid.NewGuid();
-
-                var existingUser = await _userRepository.Get<UserVM>(x => x.UniqueId == firebaseToken.Uid);
-                if (existingUser != null)
+                var claims = new List<Claim>();
+                var user = await _userRepository.Get<UserVM>(x => x.UniqueId == firebaseToken.Uid);
+                if (user != null)
                 {
                     result.NeedToCompleteProfile = false;
                     result.IsNewUser = false;
-                    userId = existingUser.Id;
+                    userId = user.Id;
+
+                    var name = firebaseClaims.FirstOrDefault(x => x.Key == "name");
+                    var picture = firebaseClaims.FirstOrDefault(x => x.Key == "picture");
+                    claims.AddRange(new List<Claim>() {
+                        new Claim(ClaimTypes.Email, user.Email),
+                        new Claim("UserId", user.Id.ToString()),
+                        new Claim(ClaimTypes.Name, name.Value?.ToString() ?? string.Empty),
+                        new Claim("PhotoUrl", picture.Value?.ToString() ?? string.Empty)
+                    });
                 }
                 else
                 {
@@ -179,15 +193,15 @@ namespace ExpenseTracker.Business
                     // TODO: implement 
                 }
 
-                // create custom claims here
-                IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
-                {
-                    { "userId", userId }
-                });
-                await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, customClaims);
-                var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseToken.Uid);
+                //// create custom claims here
+                //IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
+                //{
+                //    { "userId", userId }
+                //});
+                //await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, customClaims);
+                //var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseToken.Uid);
 
-                result.Token = customToken;
+                result.Token = GenerateAccessToken(claims);
                 result.IsAuthorized = true;
             }
             catch (Exception ex)
@@ -197,6 +211,74 @@ namespace ExpenseTracker.Business
             }
 
             return result;
+        }
+
+
+        public async Task<AuthRequestResult> Login(AuthRequest auth)
+        {
+            var result = new AuthRequestResult();
+            if (string.IsNullOrWhiteSpace(auth?.Token))
+                return null;
+
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(auth.Token, new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { "476721190749-a1iafneed5dndqaoqk5l40mo3h6tpq1m.apps.googleusercontent.com" }
+                });
+                if (payload == null)
+                {
+                    
+                    result.IsAuthorized = false;
+                    return result;
+                }
+
+                var user = await _userRepository.Get(x => x.Email == payload.Email);
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim("UserId", user.Id.ToString()),
+                    new Claim(ClaimTypes.Name, user.DisplayName),
+                    new Claim("PhotoUrl", payload.Picture)
+                };
+
+                //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyYeahBoy"));
+                //var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+                //var tokenOptions = new JwtSecurityToken(
+                //    issuer: _configuration["JwtSettings:Issuer"],
+                //    audience: _configuration["JwtSettings:Audience"],
+                //    claims: claims,
+                //    expires: DateTime.Now.AddMinutes(30),
+                //    signingCredentials: signingCredentials
+                //);
+
+                //var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+                result.Token = GenerateAccessToken(claims);
+            }
+            catch(Exception ex)
+            {
+                throw;
+            }
+
+            return result;
+        }
+
+
+        private string GenerateAccessToken(List<Claim> claims)
+        {
+            
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyYeahBoy"));
+            var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var tokenOptions = new JwtSecurityToken(
+                issuer: _configuration["JwtSettings:Issuer"],
+                audience: _configuration["JwtSettings:Audience"],
+                claims: claims,
+                expires: DateTime.Now.AddMinutes(1),
+                signingCredentials: signingCredentials
+            );
+
+            var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
+           return tokenString;
         }
 
     }

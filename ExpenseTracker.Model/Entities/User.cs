@@ -18,6 +18,7 @@ namespace ExpenseTracker.Model.Entities
         public string? LastName { get; set; }
         public string? MiddleName { get; set; }
         public string? SuffixName { get; set; }
+        public string? PhotoUrl { get; set; }
         public Guid? CreatedById { get; set; }
         public DateTime? CreatedDate { get; set; }
         public Guid? ModifiedById { get; set; }

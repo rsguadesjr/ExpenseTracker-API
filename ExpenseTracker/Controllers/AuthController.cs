@@ -21,10 +21,16 @@ namespace ExpenseTracker.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Login([FromBody] AuthRequest token)
         {
-
+            //return BadRequest("Invalid Token");
             return Ok(await _userService.Login(token.Token));
         }
 
+        [HttpPost("[action]")]
+        public async Task<IActionResult> GoogleSignIn([FromBody] AuthRequest token)
+        {
+
+            return Ok(await _userService.Login(token));
+        }
 
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterWithEmailAndPassword([FromBody] EmailPasswordRegistrationRequest request)
