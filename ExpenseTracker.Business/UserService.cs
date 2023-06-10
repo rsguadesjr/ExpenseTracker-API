@@ -28,6 +28,7 @@ namespace ExpenseTracker.Business
         private readonly IUserRepository _userRepository;
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly CurrentUserDetails _currentUser;
         public UserService(IHttpContextAccessor httpContextAccessor,
                             IUserRepository userRepository,
                             IConfiguration configuration,
@@ -37,6 +38,8 @@ namespace ExpenseTracker.Business
             _userRepository = userRepository;
             _configuration = configuration;
             _unitOfWork = unitOfWork;
+
+            _currentUser = _userRepository.GetCurrentUser();
         }
 
         public Task<UserVM> Get(Guid id)
@@ -47,6 +50,89 @@ namespace ExpenseTracker.Business
         public async Task<UserVM> GetByEmail(string email)
         {
             return await _userRepository.Get<UserVM>(x => x.Email == email);
+        }
+
+        /// <summary>
+        /// Will send an invite or request to the user to join or form a group
+        /// </summary>
+        /// <param name="email">Email of the user receiving the invite or request</param>
+        /// <returns></returns>
+        public async Task SendUserGroupRequest(string email)
+        {
+            using (await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var transactionDate = DateTime.UtcNow;
+
+                    var recepientUser = await _userRepository.Get(x => x.Email == email);
+                    if (recepientUser == null)
+                        throw new ApplicationException("Invalid Recepient");
+
+                    // get current group
+                    var groupId = (await _unitOfWork.GroupUserRepository.Get(x => x.UserId == _currentUser.UserId))?.Id;
+                    if (groupId == null)
+                    {
+                        // TODO: determine default name 
+                        var group = new Group
+                        {
+                            Name = "Group"
+                        };
+                        await _unitOfWork.GroupRepository.Create(group);
+                        await _unitOfWork.SaveChangesAsync(transactionDate);
+
+                        groupId = group.Id;
+                    }
+
+                    // create user group
+                    var userGroup = new GroupUser
+                    {
+                        UserId = recepientUser.Id,
+                        GroupId = groupId.Value,
+                        IsAccepted = false
+                    };
+                    await _unitOfWork.GroupUserRepository.Create(userGroup); 
+                    await _unitOfWork.SaveChangesAsync(transactionDate);
+
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch(Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw ex;
+                }
+            }
+        }
+
+        public async Task AcceptUserGroupRequest(int groupId)
+        {
+            using (await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var transactionDate = DateTime.UtcNow;
+
+                    var userGroup = await _unitOfWork.GroupUserRepository.Get(x => x.GroupId == groupId && x.UserId == _currentUser.UserId);
+                    if (userGroup == null)
+                        throw new ApplicationException("Invalid Group");
+
+                    // if already accepted, do nothing??
+                    if (userGroup.IsAccepted)
+                        return;
+
+                    userGroup.IsAccepted = true;
+                    userGroup.AcceptedDate = transactionDate;
+                    await _unitOfWork.GroupUserRepository.Update(userGroup);
+
+                    await _unitOfWork.SaveChangesAsync(transactionDate);
+                    await _unitOfWork.CommitTransactionAsync();
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw ex;
+                }
+            }
         }
 
         public async Task<UserRegistrationResponse> Register()
@@ -266,14 +352,17 @@ namespace ExpenseTracker.Business
 
         private string GenerateAccessToken(List<Claim> claims)
         {
+
+            var test = int.TryParse("a", out int dd);
             
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyYeahBoy"));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
             var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            int.TryParse(_configuration["JwtSettings:Duration"], out int duration);
             var tokenOptions = new JwtSecurityToken(
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(1),
+                expires: DateTime.Now.AddMinutes(duration),
                 signingCredentials: signingCredentials
             );
 

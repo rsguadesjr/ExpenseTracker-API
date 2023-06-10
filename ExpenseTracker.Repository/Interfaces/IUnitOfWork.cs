@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Repository.Interfaces
 {
+    // TODO: re-evaluate implementation
     public interface IUnitOfWork
     {
         Task SaveChangesAsync(DateTime? dateTime = null);
@@ -25,5 +26,7 @@ namespace ExpenseTracker.Repository.Interfaces
         public IRepository<ReminderRepeat> ReminderRepeatRepository { get; }
         public IRepository<Budget> BudgetRepository { get; }
         public IRepository<BudgetCategory> BudgetCategoryRepository { get; }
+        public IRepository<Group> GroupRepository { get; }
+        public IRepository<GroupUser> GroupUserRepository { get; }
     }
 }

@@ -26,6 +26,8 @@ namespace ExpenseTracker.Repository
         public DbSet<ReminderRepeat> ReminderRepeats { get; set; }
         public DbSet<Budget> Budgets { get; set; }
         public DbSet<BudgetCategory> BudgetCategories { get; set; }
+        public DbSet<Group> Groups { get; set; }
+        public DbSet<GroupUser> GroupUsers { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ExpenseTag>()

@@ -56,5 +56,22 @@ namespace ExpenseTracker.Controllers
         public void Delete(int id)
         {
         }
+
+        [HttpPost("[action]/{email}")]
+        public async Task<IActionResult> SendUserGroupRequest(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return BadRequest("Invalid Email");
+
+            await _userService.SendUserGroupRequest(email.Trim());
+            return Ok();
+        }
+
+        [HttpPost("[action]/{groupId}")]
+        public async Task<IActionResult> AcceptUserGroupRequest(int groupId)
+        {
+            await _userService.AcceptUserGroupRequest(groupId);
+            return Ok();
+        }
     }
 }

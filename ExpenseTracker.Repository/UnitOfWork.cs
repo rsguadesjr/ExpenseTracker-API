@@ -18,10 +18,12 @@ namespace ExpenseTracker.Repository
         private IRepository<Expense> _expenseRepository;
         private IRepository<Tag> _tagRepository;
         private IRepository<ExpenseTag> _expenseTagRepository;
-        public IRepository<Reminder> _reminderRepository { get; set; }
-        public IRepository<ReminderRepeat> _reminderRepeatRepository { get; set; }
-        public IRepository<Budget> _budgetRepository;
-        public IRepository<BudgetCategory> _budgetCategoryRepository;
+        private IRepository<Reminder> _reminderRepository { get; set; }
+        private IRepository<ReminderRepeat> _reminderRepeatRepository { get; set; }
+        private IRepository<Budget> _budgetRepository;
+        private IRepository<BudgetCategory> _budgetCategoryRepository;
+        private IRepository<Group> _groupRepository;
+        private IRepository<GroupUser> _groupUserRepository;
 
         private IUserRepository _userRepository;
         private IMapper _mapper;
@@ -174,6 +176,34 @@ namespace ExpenseTracker.Repository
                 }
 
                 return _budgetCategoryRepository;
+            }
+        }
+
+
+        public IRepository<Group> GroupRepository
+        {
+            get
+            {
+                if (_groupRepository == null)
+                {
+                    _groupRepository = new GroupRepository(_context, _mapper);
+                }
+
+                return _groupRepository;
+            }
+        }
+
+
+        public IRepository<GroupUser> GroupUserRepository
+        {
+            get
+            {
+                if (_groupUserRepository == null)
+                {
+                    _groupUserRepository = new GroupUserRepository(_context, _mapper);
+                }
+
+                return _groupUserRepository;
             }
         }
     }
