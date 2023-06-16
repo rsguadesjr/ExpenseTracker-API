@@ -1,11 +1,6 @@
 ﻿using AutoMapper;
 using ExpenseTracker.Model.Common;
-using ExpenseTracker.Model.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using ExpenseTracker.Model.Models.Source;
 
 namespace ExpenseTracker.Model.Mapping
 {
@@ -13,7 +8,8 @@ namespace ExpenseTracker.Model.Mapping
     {
         public SourceMappingProfile()
         {
-            CreateMap<Source, Option>();
+            CreateMap<ExpenseTracker.Model.Entities.Source, Option>();
+            CreateMap<ExpenseTracker.Model.Entities.Source, SourceResponseModel>();
         }
     }
 }

@@ -257,7 +257,7 @@ namespace ExpenseTracker.Business
                 // TODO: remove initialization here, other value will be in the else statement below
                 Guid userId = Guid.NewGuid();
                 var claims = new List<Claim>();
-                var user = await _userRepository.Get<UserVM>(x => x.UniqueId == firebaseToken.Uid);
+                var user = await _userRepository.Get<UserResponseModel>(x => x.UniqueId == firebaseToken.Uid);
                 if (user != null)
                 {
                     result.NeedToCompleteProfile = false;
@@ -266,12 +266,12 @@ namespace ExpenseTracker.Business
 
                     var name = firebaseClaims.FirstOrDefault(x => x.Key == "name");
                     var picture = firebaseClaims.FirstOrDefault(x => x.Key == "picture");
-                    claims.AddRange(new List<Claim>() {
-                        new Claim(ClaimTypes.Email, user.Email),
-                        new Claim("UserId", user.Id.ToString()),
-                        new Claim(ClaimTypes.Name, name.Value?.ToString() ?? string.Empty),
-                        new Claim("PhotoUrl", picture.Value?.ToString() ?? string.Empty)
-                    });
+
+                    claims.Add(new Claim("Email", user.Email));
+                    claims.Add(new Claim("UserId", user.Id.ToString()));
+                    claims.Add(new Claim("Name", user.DisplayName ?? name.Value?.ToString() ?? string.Empty));
+                    claims.Add(new Claim("PhotoUrl", picture.Value?.ToString() ?? string.Empty));
+                    claims.AddRange(user.Roles.Select(r => new Claim("Role", r.Name)));
                 }
                 else
                 {

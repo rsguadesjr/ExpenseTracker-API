@@ -1,5 +1,6 @@
 ﻿using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Models.Budget;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -8,6 +9,7 @@ namespace ExpenseTracker.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BudgetsController : ControllerBase
     {
         private readonly IBudgetService _budgetService;
@@ -32,6 +34,9 @@ namespace ExpenseTracker.Controllers
         }
 
         // POST api/<BudgetsController>
+
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] BudgetRequestModel data)
         {
@@ -44,6 +49,7 @@ namespace ExpenseTracker.Controllers
         }
 
         // PUT api/<BudgetsController>/5
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Put(int id, [FromBody] BudgetRequestModel data)
         {
@@ -56,6 +62,7 @@ namespace ExpenseTracker.Controllers
         }
 
         // DELETE api/<BudgetsController>/5
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

@@ -18,6 +18,7 @@ namespace ExpenseTracker.Controllers
             _expenseService= expenseService;
         }
 
+
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(Guid id)
         {
@@ -36,6 +37,8 @@ namespace ExpenseTracker.Controllers
             return Ok(await _expenseService.GetAll(searchParam));
         }
 
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPost]
         public async Task<IActionResult> Create(ExpenseDto dto)
         {
@@ -47,6 +50,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _expenseService.Create(dto));
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] ExpenseDto dto)
         {
@@ -58,6 +62,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _expenseService.Update(dto));
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

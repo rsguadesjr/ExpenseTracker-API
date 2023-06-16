@@ -14,6 +14,13 @@ namespace ExpenseTracker.Model.Mapping
         public UserMappingProfile()
         {
             CreateMap<User, UserVM>();
+            CreateMap<User, UserResponseModel>()
+                .ForMember(x => x.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(s => new RoleResponseModel
+                {
+                    Id = s.RoleId,
+                    Name = s.Role.Name,
+                    IsActive = s.Role.IsActive
+                })));
         }
     }
 }

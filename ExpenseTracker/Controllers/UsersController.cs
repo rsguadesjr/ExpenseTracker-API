@@ -39,24 +39,28 @@ namespace ExpenseTracker.Controllers
             return "value";
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin")]
         // POST api/<UsersController>
         [HttpPost]
         public void Post([FromBody] string value)
         {
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin")]
         // PUT api/<UsersController>/5
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] string value)
         {
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin")]
         // DELETE api/<UsersController>/5
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPost("[action]/{email}")]
         public async Task<IActionResult> SendUserGroupRequest(string email)
         {

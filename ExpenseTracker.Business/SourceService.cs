@@ -1,6 +1,7 @@
 ﻿using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Common;
 using ExpenseTracker.Model.Entities;
+using ExpenseTracker.Model.Models.Source;
 using ExpenseTracker.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,7 +24,7 @@ namespace ExpenseTracker.Business
             _userRepository = userRepository;
         }
 
-        public async Task<List<Option>> GetAll()
+        public async Task<List<SourceResponseModel>> GetAll()
         {// Get current user
             var currentUser = _userRepository.GetCurrentUser();
             if (currentUser == null)
@@ -31,7 +32,7 @@ namespace ExpenseTracker.Business
                 throw new ApplicationException("User not found");
             }
 
-            var result = _sourceRepository.GetAll<Option>(x => x.UserId == currentUser.UserId);
+            var result = _sourceRepository.GetAll<SourceResponseModel>(x => x.UserId == currentUser.UserId);
             return await result.ToListAsync();
         }
     }

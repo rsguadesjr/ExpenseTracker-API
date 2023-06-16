@@ -22,6 +22,7 @@ namespace ExpenseTracker.Controllers
         public async Task<IActionResult> Login([FromBody] AuthRequest token)
         {
             //return BadRequest("Invalid Token");
+            await Task.Delay(3000);
             return Ok(await _userService.Login(token.Token));
         }
 

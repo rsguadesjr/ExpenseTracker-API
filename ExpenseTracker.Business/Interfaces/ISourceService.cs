@@ -1,4 +1,5 @@
 ﻿using ExpenseTracker.Model.Common;
+using ExpenseTracker.Model.Models.Source;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +10,6 @@ namespace ExpenseTracker.Business.Interfaces
 {
     public interface ISourceService
     {
-        Task<List<Option>> GetAll();
+        Task<List<SourceResponseModel>> GetAll();
     }
 }

@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ExpenseTracker.Model.Entities
+namespace ExpenseTracker.Model.Models.User
 {
-    [Table(nameof(User))]
-    public class User : IAuditable
+    public class UserResponseModel
     {
         public Guid Id { get; set; }
         public string UniqueId { get; set; }
@@ -19,10 +17,9 @@ namespace ExpenseTracker.Model.Entities
         public string? MiddleName { get; set; }
         public string? SuffixName { get; set; }
         public string? PhotoUrl { get; set; }
-        public Guid? CreatedById { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public Guid? ModifiedById { get; set; }
         public DateTime? ModifiedDate { get; set; }
-        public virtual ICollection<UserRole> UserRoles { get; set; }
+        public List<RoleResponseModel> Roles { get; set; }
+
     }
 }

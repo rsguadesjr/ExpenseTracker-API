@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authentication;
 using ExpenseTracker.Security;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using System.IdentityModel.Tokens.Jwt;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -38,7 +39,7 @@ if (FirebaseApp.DefaultInstance == null)
 //    .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, opt =>
 //    {
 //    } );
-
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(opt =>
 {
     opt.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -55,8 +56,12 @@ builder.Services.AddAuthentication(opt =>
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"]))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
+            
+            NameClaimType = "Name",
+            RoleClaimType = "Role",
         };
+
     })
     .AddGoogle(options =>
     {

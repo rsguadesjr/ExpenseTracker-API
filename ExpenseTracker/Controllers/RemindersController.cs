@@ -35,6 +35,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _reminderService.GetAll(startDate.Value, endDate.Value));
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPost]
         public async Task<IActionResult> Create(ReminderRequestModel reminder)
         {
@@ -46,6 +47,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _reminderService.Create(reminder));
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] ReminderRequestModel reminder)
         {
@@ -57,6 +59,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _reminderService.Update(reminder));
         }
 
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

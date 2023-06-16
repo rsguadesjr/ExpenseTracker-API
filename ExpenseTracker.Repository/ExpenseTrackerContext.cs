@@ -28,6 +28,8 @@ namespace ExpenseTracker.Repository
         public DbSet<BudgetCategory> BudgetCategories { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupUser> GroupUsers { get; set; }
+        public DbSet<UserRole> UserRoles { get; set; }
+        public DbSet<Role> Roles { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ExpenseTag>()

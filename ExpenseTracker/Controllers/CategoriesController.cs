@@ -26,6 +26,8 @@ namespace ExpenseTracker.Controllers
             return Ok(await _categoryService.GetAll());
         }
 
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPost]
         public async Task<IActionResult> Create(CategoryRequestModel data)
         {
@@ -37,6 +39,8 @@ namespace ExpenseTracker.Controllers
             return Ok(await _categoryService.Create(data));   
         }
 
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update([FromRoute] int id, [FromBody] CategoryRequestModel data)
         {
