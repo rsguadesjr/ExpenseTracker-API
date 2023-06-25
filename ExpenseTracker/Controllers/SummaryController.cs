@@ -69,5 +69,17 @@ namespace ExpenseTracker.Controllers
 
             return Ok(await _summaryService.GetTotalAmountPerTag(startDate.Value, endDate.Value));
         }
+
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetTotalAmountPerCategoryGroupByDate([FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            if (startDate == null || endDate == null)
+            {
+                return BadRequest();
+            }
+
+            return Ok(await _summaryService.GetTotalAmountPerCategoryGroupByDate(startDate.Value, endDate.Value));
+        }
     }
 }

@@ -19,7 +19,7 @@ namespace ExpenseTracker.Model.Mapping
                     Amount = s.Amount,
                     BudgetId = s.BudgetId.Value,
                     CategoryId = s.CategoryId,
-                    Category = string.Empty
+                    Category = s.Category != null ? s.Category.Name : string.Empty,
                 })));
             CreateMap<BudgetRequestModel, Budget>();
 

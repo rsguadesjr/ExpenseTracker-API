@@ -9,7 +9,7 @@ namespace ExpenseTracker.Model.Models.Budget
     public class BudgetRequestModel
     {
         public int? Id { get; set; }
-        public short Amount { get; set; }
+        public int Amount { get; set; }
         public short Month { get; set; }
         public int Year { get; set; }
         public bool IsDefault { get; set; } = false;

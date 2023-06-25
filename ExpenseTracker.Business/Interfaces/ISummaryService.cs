@@ -14,5 +14,6 @@ namespace ExpenseTracker.Business.Interfaces
         Task<List<MonthlySummaryByYearResult>> GetSummaryByDateRange(DateTime startDate, DateTime endDate);
         Task<List<MonthlySummaryByYearResult>> GetMonthlySummaryByYear(int year);
         Task<List<DailyTotalAmount>> GetDailyTotalByDateRange(DateTime startDate, DateTime endDate);
+        Task<List<TotalPerCategoryPerDate>> GetTotalAmountPerCategoryGroupByDate(DateTime startDate, DateTime endDate);
     }
 }

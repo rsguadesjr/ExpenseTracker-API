@@ -66,7 +66,7 @@ namespace ExpenseTracker.Business
             var parameters = new Dictionary<string, object>
             {
                 { "Year", year },
-                { "UserId", Guid.Parse("1bd17662-e014-43d4-b380-097acd2c2ae6")}
+                { "UserId", _currentUser.UserId }
             };
             var result = await _expenseRepository.ExecuteStoredProcedure<MonthlySummaryByYearResult>("GetMonthlySummaryByYear", parameters);
             return result;
@@ -82,6 +82,18 @@ namespace ExpenseTracker.Business
 
             };
             return await _expenseRepository.ExecuteStoredProcedure<DailyTotalAmount>("GetDailyTotalByDateRange", parameters);
+        }
+
+        public async Task<List<TotalPerCategoryPerDate>> GetTotalAmountPerCategoryGroupByDate(DateTime startDate, DateTime endDate)
+        {
+            var parameters = new Dictionary<string, object>
+            {
+                { "StartDate", startDate },
+                { "EndDate", endDate },
+                { "UserId", _currentUser.UserId }
+
+            };
+            return await _expenseRepository.ExecuteStoredProcedure<TotalPerCategoryPerDate>("GetTotalAmountPerCategoryGroupByDate", parameters);
         }
     }
 }
