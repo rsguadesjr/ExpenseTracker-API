@@ -73,7 +73,7 @@ namespace ExpenseTracker.Business
                         bc.UserId = _currentUser.UserId;
                     }
 
-                    var created = await _unitOfWork.BudgetRepository.Create(budget);
+                    var created = await _budgetRepository.Create(budget);
 
                     //foreach (var budgetCatgory in data.BudgetCategories)
                     //{
@@ -100,18 +100,34 @@ namespace ExpenseTracker.Business
 
         public async Task<BudgetResponseModel> Update(BudgetRequestModel data)
         {
+            if (data?.Id == null)
+            {
+                throw new ApplicationException("Invalid request model");
+            }
+
             using (await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     var transactionDate = DateTime.UtcNow;
+
+                    // Update main budget entity
                     var budget = _mapper.Map<Budget>(data);
+                    var propsToUpdate = new List<string>
+                    {
+                        nameof(Budget.Amount),
+                        nameof(Budget.Month),
+                        nameof(Budget.Year),
+                        nameof(Budget.IsActive),
+                        nameof(Budget.IsDefault),
+                    };
+                    await _budgetRepository.Update(budget.Id!.Value, budget, propsToUpdate);
 
-                    var updatedBudget = await _unitOfWork.BudgetRepository.Update(budget);
 
+                    // Get budgetCategories records in db
                     var existingBudgetCategories = await _budgetCategoryRepository.GetAll(x => x.UserId == _currentUser.UserId && x.BudgetId == budget.Id).ToListAsync();
                     
-                    // Delete
+                    // Delete budgetCategories not in the current request
                     var currentCategoryIds = data.BudgetCategories.Select(bc => bc.CategoryId).ToList();
                     var removeCategories = existingBudgetCategories.Where(x => !currentCategoryIds.Contains(x.CategoryId));
                     if (removeCategories.Any())
@@ -119,19 +135,21 @@ namespace ExpenseTracker.Business
                         await _budgetCategoryRepository.Delete(removeCategories);
                     }
 
-                    // Create or Update
+                    // Create or Update the budget category
+                    propsToUpdate = new List<string> 
+                    {
+                        nameof(BudgetCategory.Amount),
+                        nameof(BudgetCategory.CategoryId)
+                    };
                     foreach (var budgetCatgory in data.BudgetCategories)
                     {
                         var item = _mapper.Map<BudgetCategory>(budgetCatgory);
-
-                        // if in existing list, just update
                         var existingBudgetCategory = existingBudgetCategories.FirstOrDefault(x => x.CategoryId == budgetCatgory.CategoryId);
                         if (existingBudgetCategory != null)
                         {
                             item.Id = existingBudgetCategory.Id;
-                            await _budgetCategoryRepository.Update(item);
+                            await _budgetCategoryRepository.Update(item.Id!, item, propsToUpdate);
                         }
-                        // else create the entry
                         else
                         {
                             await _budgetCategoryRepository.Create(item);

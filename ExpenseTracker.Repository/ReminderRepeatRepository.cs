@@ -9,25 +9,22 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Repository
 {
-    public class ReminderRepeatRepository : BaseRepository<ReminderRepeat>
+    public class ReminderRepeatRepository : Repository<ReminderRepeat>
     {
         public ReminderRepeatRepository(ExpenseTrackerContext context, IMapper mapper) : base(context, mapper)
         {
         }
 
-        public override async Task<ReminderRepeat> Update(ReminderRepeat entity)
+        public override async Task<ReminderRepeat> Update(dynamic key, ReminderRepeat entity, List<string> properties, bool updateProperties = true)
         {
-            var reminder = await _context.ReminderRepeats.SingleAsync(x => x.ReminderId == entity.ReminderId);
-            reminder.StartDate = entity.StartDate;
-            reminder.EndDate = entity.EndDate;
-            reminder.Type = entity.Type;
-            reminder.OnMonday = entity.OnMonday;
-            reminder.OnTuesday = entity.OnTuesday;
-            reminder.OnWednesday = entity.OnWednesday;
-            reminder.OnThursday = entity.OnThursday;
-            reminder.OnFriday = entity.OnFriday;
-            reminder.OnSaturday = entity.OnSaturday;
-            reminder.OnSunday = entity.OnSunday;
+            var reminderId = (int)key;
+            var entryInDb = await _context.ReminderRepeats.SingleAsync(x => x.ReminderId == reminderId);
+            var ignoreProps = new List<string>
+            {
+                nameof(ReminderRepeat.Id),
+                nameof(ReminderRepeat.Reminder),
+            };
+            _context.MapValueToDB(entity, entryInDb, ignoreProps, false);
 
             return entity;
         }

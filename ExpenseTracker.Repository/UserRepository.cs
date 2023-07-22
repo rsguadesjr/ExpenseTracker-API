@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Repository
 {
-    public class UserRepository : BaseRepository<User>, IUserRepository
+    public class UserRepository : Repository<User>, IUserRepository
     {
         private readonly IHttpContextAccessor _httpContext;
         public UserRepository(ExpenseTrackerContext context, IMapper mapper, IHttpContextAccessor httpContext) : base(context, mapper)
@@ -34,11 +34,6 @@ namespace ExpenseTracker.Repository
 
             await _context.AddAsync(entity);
             return entity;
-        }
-
-        public override Task<User> Update(User entity)
-        {
-            throw new NotImplementedException();
         }
 
         public CurrentUserDetails GetCurrentUser()

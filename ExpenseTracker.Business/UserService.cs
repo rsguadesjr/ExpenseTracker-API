@@ -29,10 +29,14 @@ namespace ExpenseTracker.Business
         private readonly IConfiguration _configuration;
         private readonly IUnitOfWork _unitOfWork;
         private readonly CurrentUserDetails _currentUser;
+        private readonly IRepository<Group> _groupRepository;
+        private readonly IRepository<GroupUser> _groupUserRepository;
         public UserService(IHttpContextAccessor httpContextAccessor,
                             IUserRepository userRepository,
                             IConfiguration configuration,
-                            IUnitOfWork unitOfWork)
+                            IUnitOfWork unitOfWork,
+                            IRepository<Group> groupRepository,
+                            IRepository<GroupUser> groupUserRepository)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
@@ -40,6 +44,8 @@ namespace ExpenseTracker.Business
             _unitOfWork = unitOfWork;
 
             _currentUser = _userRepository.GetCurrentUser();
+            _groupRepository = groupRepository;
+            _groupUserRepository = groupUserRepository;
         }
 
         public Task<UserVM> Get(Guid id)
@@ -70,7 +76,7 @@ namespace ExpenseTracker.Business
                         throw new ApplicationException("Invalid Recepient");
 
                     // get current group
-                    var groupId = (await _unitOfWork.GroupUserRepository.Get(x => x.UserId == _currentUser.UserId))?.Id;
+                    var groupId = (await _groupUserRepository.Get(x => x.UserId == _currentUser.UserId))?.Id;
                     if (groupId == null)
                     {
                         // TODO: determine default name 
@@ -78,7 +84,7 @@ namespace ExpenseTracker.Business
                         {
                             Name = "Group"
                         };
-                        await _unitOfWork.GroupRepository.Create(group);
+                        await _groupRepository.Create(group);
                         await _unitOfWork.SaveChangesAsync(transactionDate);
 
                         groupId = group.Id;
@@ -91,7 +97,7 @@ namespace ExpenseTracker.Business
                         GroupId = groupId.Value,
                         IsAccepted = false
                     };
-                    await _unitOfWork.GroupUserRepository.Create(userGroup); 
+                    await _groupUserRepository.Create(userGroup); 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
 
                     await _unitOfWork.CommitTransactionAsync();
@@ -112,7 +118,7 @@ namespace ExpenseTracker.Business
                 {
                     var transactionDate = DateTime.UtcNow;
 
-                    var userGroup = await _unitOfWork.GroupUserRepository.Get(x => x.GroupId == groupId && x.UserId == _currentUser.UserId);
+                    var userGroup = await _groupUserRepository.Get(x => x.GroupId == groupId && x.UserId == _currentUser.UserId);
                     if (userGroup == null)
                         throw new ApplicationException("Invalid Group");
 
@@ -120,9 +126,16 @@ namespace ExpenseTracker.Business
                     if (userGroup.IsAccepted)
                         return;
 
+
+                    var props = new List<string>
+                    {
+                        nameof(GroupUser.IsAccepted),
+                        nameof(GroupUser.AcceptedDate)
+                    };
+
                     userGroup.IsAccepted = true;
                     userGroup.AcceptedDate = transactionDate;
-                    await _unitOfWork.GroupUserRepository.Update(userGroup);
+                    await _groupUserRepository.Update(userGroup.Id!, userGroup, props);
 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
                     await _unitOfWork.CommitTransactionAsync();

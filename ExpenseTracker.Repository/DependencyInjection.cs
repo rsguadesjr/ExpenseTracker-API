@@ -16,18 +16,11 @@ namespace ExpenseTracker.Repository
         public static void Initialize(IServiceCollection services, IConfiguration config)
         {
             services.AddDbContext<ExpenseTrackerContext>(opt => opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
-            services.AddScoped<IRepository<Expense>, ExpenseRepository>();
-            services.AddScoped<IRepository<Category>, CategoryRepository>();
+            services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
             services.AddScoped<IRepository<User>, UserRepository>();
-            services.AddScoped<IRepository<Source>, SourceRepository>();
-            services.AddScoped<IRepository<Tag>, TagRepository>();
-            services.AddScoped<IRepository<ExpenseTag>, ExpenseTagRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IRepository<Reminder>, ReminderRepository>();
             services.AddScoped<IRepository<ReminderRepeat>, ReminderRepeatRepository>();
-            services.AddScoped<IRepository<Budget>, BudgetRepository>();
-            services.AddScoped<IRepository<BudgetCategory>, BudgetCategoryRepository>();
         }
     }
 }

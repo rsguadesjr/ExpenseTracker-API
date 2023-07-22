@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using ExpenseTracker.Model.Entities;
+using ExpenseTracker.Model.Models.User;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
@@ -16,17 +17,5 @@ namespace ExpenseTracker.Repository.Interfaces
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task CommitTransactionAsync();
         Task RollbackTransactionAsync();
-
-
-        public IRepository<Category> CategoryRepository { get; }
-        public IRepository<Expense> ExpenseRepository { get; }
-        public IRepository<Tag> TagRepository { get; }
-        public IRepository<ExpenseTag> ExpenseTagRepository { get; }
-        public IRepository<Reminder> ReminderRepository { get; }
-        public IRepository<ReminderRepeat> ReminderRepeatRepository { get; }
-        public IRepository<Budget> BudgetRepository { get; }
-        public IRepository<BudgetCategory> BudgetCategoryRepository { get; }
-        public IRepository<Group> GroupRepository { get; }
-        public IRepository<GroupUser> GroupUserRepository { get; }
     }
 }

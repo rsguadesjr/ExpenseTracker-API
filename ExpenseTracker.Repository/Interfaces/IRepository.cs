@@ -11,10 +11,9 @@ namespace ExpenseTracker.Repository.Interfaces
     public interface IRepository<T> where T : class
     {
         Task<T> Create(T entity);
-        abstract Task<T> Update(T entity);
+        Task Update(dynamic key, T entity, List<string> properties, bool updateProperties = true);
         Task Delete(dynamic id);
-        Task Delete(T entity);
-        Task Delete(List<T> entities);
+        void Delete(T entity);
         Task<D> Get<D>(Expression<Func<T, bool>> predicate);
         Task<T> Get(Expression<Func<T, bool>> predicate);
         IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate);

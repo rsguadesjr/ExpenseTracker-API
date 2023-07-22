@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -67,5 +68,21 @@ namespace ExpenseTracker.Repository
                 }
             }
         }
+
+        public void MapValueToDB<T>(T updatedEntry, T entryInDb, List<string> properties, bool updateProperties)
+        {
+            PropertyInfo[] props = typeof(T).GetProperties();
+
+            foreach (PropertyInfo property in props)
+            {
+                if ((updateProperties && properties.Contains(property.Name))
+                    || (!updateProperties && !properties.Contains(property.Name)))
+                {
+                    var val = property.GetValue(updatedEntry);
+                    property.SetValue(entryInDb, val);
+                }
+            }
+        }
+
     }
 }

@@ -21,8 +21,6 @@ namespace ExpenseTracker.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Login([FromBody] AuthRequest token)
         {
-            //return BadRequest("Invalid Token");
-            await Task.Delay(3000);
             return Ok(await _userService.Login(token.Token));
         }
 
@@ -39,18 +37,5 @@ namespace ExpenseTracker.Controllers
 
             return Ok(await _userService.Register(request));
         }
-
-
-        [HttpGet("[action]")]
-        public async Task<IActionResult> GetSettings()
-        {
-            var test = new
-            {
-                test = _configuration.GetConnectionString("DefaultConnection")
-            };
-            return Ok(test);
-        }
-
-
     }
 }

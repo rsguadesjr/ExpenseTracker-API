@@ -17,11 +17,19 @@ namespace ExpenseTracker.Business
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
-        public ReminderService(IUnitOfWork unitOfWork, IMapper mapper, IUserRepository userRepository)
+        private readonly IRepository<Reminder> _reminderRepository;
+        private readonly IRepository<ReminderRepeat> _reminderRepeatRepository;
+        public ReminderService(IUnitOfWork unitOfWork,
+                                IMapper mapper,
+                                IUserRepository userRepository,
+                                IRepository<Reminder> reminderRepository,
+                                IRepository<ReminderRepeat> reminderRepeatRepository)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userRepository = userRepository;
+            _reminderRepository = reminderRepository;
+            _reminderRepeatRepository = reminderRepeatRepository;
         }
 
         public async Task<List<ReminderResponseModel>> GetAll(DateTime startDate, DateTime endDate)
@@ -31,7 +39,7 @@ namespace ExpenseTracker.Business
             {
                 throw new ApplicationException("Invalid request!");
             }
-            var result = await _unitOfWork.ReminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId ).ToListAsync();
+            var result = await _reminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId ).ToListAsync();
 
             return result;
 
@@ -59,13 +67,13 @@ namespace ExpenseTracker.Business
         public async Task<ReminderResponseModel> Get(int reminderId)
         {
             
-            var reminder = await _unitOfWork.ReminderRepository.Get(x => x.Id == reminderId);
+            var reminder = await _reminderRepository.Get(x => x.Id == reminderId);
             if (reminder == null)
             {
                 return null;
             }
             
-            return await _unitOfWork.ReminderRepository.Get< ReminderResponseModel>(x => x.Id == reminder.Id);
+            return await _reminderRepository.Get< ReminderResponseModel>(x => x.Id == reminder.Id);
             
         }
 
@@ -79,12 +87,12 @@ namespace ExpenseTracker.Business
                     var reminderEntity = _mapper.Map<Reminder>(reminder);
                     reminderEntity.UserId = currentUser.UserId;
 
-                    var newReminder = (await _unitOfWork.ReminderRepository.Create(reminderEntity));
+                    var newReminder = (await _reminderRepository.Create(reminderEntity));
                     await _unitOfWork.SaveChangesAsync();
                     reminder.Id = newReminder.Id;
 
                     var repeatEntity = _mapper.Map<ReminderRepeat>(reminder);
-                    await _unitOfWork.ReminderRepeatRepository.Create(repeatEntity);
+                    await _reminderRepeatRepository.Create(repeatEntity);
                     await _unitOfWork.SaveChangesAsync();
                     
                     await _unitOfWork.CommitTransactionAsync();
@@ -102,16 +110,29 @@ namespace ExpenseTracker.Business
 
         public async Task<ReminderResponseModel> Update(ReminderRequestModel reminder)
         {
+            if (reminder?.Id == null)
+            {
+                throw new ApplicationException("Invalid request model");
+            }
+
             using (await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     var reminderEntity = _mapper.Map<Reminder>(reminder);
-                    await _unitOfWork.ReminderRepository.Update(reminderEntity);
+                    var ignoreProps = new List<string>
+                    {
+                        nameof(Reminder.Id),
+                        nameof(Reminder.CreatedById),
+                        nameof(Reminder.ModifiedById),
+                        nameof(Reminder.ReminderRepeat),
+                        nameof(Reminder.UserId)
+                    };
+                    await _reminderRepository.Update(reminderEntity.Id!, reminderEntity, ignoreProps, false);
                     await _unitOfWork.SaveChangesAsync();
 
                     var repeatEntity = _mapper.Map<ReminderRepeat>(reminder);
-                    await _unitOfWork.ReminderRepeatRepository.Update(repeatEntity);
+                    await _reminderRepeatRepository.Update(reminderEntity.Id!, repeatEntity, ignoreProps, false);
                     await _unitOfWork.SaveChangesAsync();
 
                     await _unitOfWork.CommitTransactionAsync();
@@ -119,7 +140,7 @@ namespace ExpenseTracker.Business
                 catch (Exception ex)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    throw ex;
+                    throw;
                 }
             }
 
@@ -128,10 +149,9 @@ namespace ExpenseTracker.Business
 
         public async Task Delete(int id)
         {
-
-            var repeatReminder = await _unitOfWork.ReminderRepeatRepository.Get(x => x.Reminder.Id == id);
-            await _unitOfWork.ReminderRepository.Delete(id);
-            await _unitOfWork.ReminderRepeatRepository.Delete(repeatReminder.Id);
+            var repeatReminder = await _reminderRepeatRepository.Get(x => x.Reminder.Id == id);
+            await _reminderRepository.Delete(id);
+            await _reminderRepeatRepository.Delete(repeatReminder.Id);
 
             await _unitOfWork.SaveChangesAsync();
         }

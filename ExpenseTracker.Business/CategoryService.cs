@@ -66,7 +66,7 @@ namespace ExpenseTracker.Business
                     var category = _mapper.Map<Category>(data);
                     category.UserId = _currentUser.UserId;
 
-                    var created = await _unitOfWork.CategoryRepository.Create(category);
+                    var created = await _categoryRepository.Create(category);
                     
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransactionAsync();
@@ -100,13 +100,15 @@ namespace ExpenseTracker.Business
             {
                 try
                 {
-
                     var category = _mapper.Map<Category>(data);
-                    category.UserId = _currentUser.UserId;
 
-                    var created = await _unitOfWork.CategoryRepository.Update(category);
-                    data.Id = created.Id;
-
+                    var properties = new List<string>()
+                    {
+                        nameof(Category.Name),
+                        nameof(Category.Description),
+                        nameof(Category.IsActive),
+                    };
+                    await _categoryRepository.Update(category.Id, category, properties);
 
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransactionAsync();
@@ -115,7 +117,7 @@ namespace ExpenseTracker.Business
                 {
                     await _unitOfWork.RollbackTransactionAsync();
                     // Log error
-                    throw ex;
+                    throw;
                 }
             }
 

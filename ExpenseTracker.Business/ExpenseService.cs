@@ -12,22 +12,30 @@ namespace ExpenseTracker.Business
 {
     public class ExpenseService : IExpenseService
     {
-        private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IUserRepository _userRepository;
+        private readonly IRepository<Expense> _expenseRepository;
+        private readonly IRepository<ExpenseTag> _expenseTagRepository;
+        private readonly IRepository<Tag> _tagRepository;
         public ExpenseService(IUnitOfWork unitOfWork,
-                            IUserRepository userRepository,
-                                    IMapper mapper,
-                                    IUserService userService)
+                              IUserRepository userRepository,
+                              IMapper mapper,
+                              IRepository<Expense> expenseRepository,
+                              IRepository<ExpenseTag> expenseTagRepository,
+                              IRepository<Tag> tagRepository)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _userRepository = userRepository;
+            _expenseRepository = expenseRepository;
+            _expenseTagRepository = expenseTagRepository;
+            _tagRepository = tagRepository;
         }
 
         public async Task<ExpenseDto> Get(Guid id)
         {
-            return await _unitOfWork.ExpenseRepository.Get<ExpenseDto>(x => x.Id == id);
+            return await _expenseRepository.Get<ExpenseDto>(x => x.Id == id);
         }
 
         // TODO: Correct the UserId value
@@ -48,7 +56,7 @@ namespace ExpenseTracker.Business
                     && (currentUser.UserId == v.UserId);
 
             // query
-            var query = _unitOfWork.ExpenseRepository.GetAll<ExpenseListResult>(predicate);
+            var query = _expenseRepository.GetAll<ExpenseListResult>(predicate);
             query = query.OrderByDescending(x => x.ExpenseDate).ThenBy(x => x.CreatedDate);
             var totalRows = query.Count();
 
@@ -86,7 +94,7 @@ namespace ExpenseTracker.Business
                     expense.UserId= user.UserId;
                     
                     // create expense entry
-                    var result = await _unitOfWork.ExpenseRepository.Create(expense);
+                    var result = await _expenseRepository.Create(expense);
                     dto.Id = result.Id;
 
                     await AddOrDeleteTags(dto.Id.Value, dto.Tags);
@@ -97,25 +105,34 @@ namespace ExpenseTracker.Business
                 catch(Exception ex)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    throw ex;
-
+                    throw;
                 }
             }
 
-            return await _unitOfWork.ExpenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
+            return await _expenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
         }
 
         public async Task<ExpenseListResult> Update(ExpenseDto dto)
         {
+            if (dto?.Id == null)
+                throw new ApplicationException("Invalid request model");
+
             using (await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
                     var transactionDate = DateTime.UtcNow;
+                    var expense = _mapper.Map<Expense>(dto);
 
-                    var result = await _unitOfWork.ExpenseRepository.Update(_mapper.Map<Expense>(dto));
-                    dto.Id = result.Id;
-
+                    var props = new List<string>
+                    {
+                        nameof(Expense.Amount),
+                        nameof(Expense.ExpenseDate),
+                        nameof(Expense.Description),
+                        nameof(Expense.CategoryId),
+                        nameof(Expense.SourceId)
+                    };
+                    await _expenseRepository.Update(expense.Id, expense, props);
                     await AddOrDeleteTags(dto.Id.Value, dto.Tags);
 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
@@ -124,11 +141,12 @@ namespace ExpenseTracker.Business
                 catch(Exception ex)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
+                    throw;
                 }
             }
             
 
-            return await _unitOfWork.ExpenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
+            return await _expenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
         }
 
         public async Task Delete(Guid id)
@@ -137,13 +155,14 @@ namespace ExpenseTracker.Business
             {
                 try
                 {
-                    await _unitOfWork.ExpenseRepository.Delete(id);
+                    await _expenseRepository.Delete(id);
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransactionAsync();
                 }
                 catch (Exception ex)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
+                    throw;
                 }
             }
         }
@@ -152,14 +171,14 @@ namespace ExpenseTracker.Business
         private async Task AddOrDeleteTags(Guid expenseId, List<string> tags)
         {
             // get existing tags
-            var existingTags = await _unitOfWork.ExpenseTagRepository.GetAll(x => x.ExpenseId == expenseId)
+            var existingTags = await _expenseTagRepository.GetAll(x => x.ExpenseId == expenseId)
                                                                     .Include(x => x.Tag)
                                                                     .ToListAsync();
             // remove existing tags if not in current list
             var toRemoveTags = existingTags.Where(x => !tags.Contains(x.Tag.Name)).ToList();
-            if (toRemoveTags.Any())
+            foreach(var tag in toRemoveTags)
             {
-                await _unitOfWork.ExpenseTagRepository.Delete(toRemoveTags);
+                _expenseTagRepository.Delete(tag);
             }
 
             // add new tags if not yet in db
@@ -172,7 +191,7 @@ namespace ExpenseTracker.Business
             {
                 var expenseTag = new ExpenseTag { ExpenseId = expenseId };
                 // get tagId
-                int? tagId = (await _unitOfWork.TagRepository.Get(x => x.Name == tag))?.Id;
+                int? tagId = (await _tagRepository.Get(x => x.Name == tag))?.Id;
                 if (tagId != null)
                 {
                     expenseTag.TagId = tagId.Value;
@@ -183,7 +202,7 @@ namespace ExpenseTracker.Business
                 }
 
                 // add expense tag relationship
-                await _unitOfWork.ExpenseTagRepository.Create(expenseTag);
+                await _expenseTagRepository.Create(expenseTag);
             }
         }
     }
