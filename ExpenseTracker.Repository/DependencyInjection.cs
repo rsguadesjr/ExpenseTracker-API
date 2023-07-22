@@ -21,6 +21,7 @@ namespace ExpenseTracker.Repository
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRepository<ReminderRepeat>, ReminderRepeatRepository>();
+            services.AddScoped<IStoredProcedure, StoredProcedure>();
         }
     }
 }

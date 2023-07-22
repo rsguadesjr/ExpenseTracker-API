@@ -31,12 +31,14 @@ namespace ExpenseTracker.Business
         private readonly CurrentUserDetails _currentUser;
         private readonly IRepository<Group> _groupRepository;
         private readonly IRepository<GroupUser> _groupUserRepository;
+        private readonly IStoredProcedure _storedProcedure;
         public UserService(IHttpContextAccessor httpContextAccessor,
                             IUserRepository userRepository,
                             IConfiguration configuration,
                             IUnitOfWork unitOfWork,
                             IRepository<Group> groupRepository,
-                            IRepository<GroupUser> groupUserRepository)
+                            IRepository<GroupUser> groupUserRepository,
+                            IStoredProcedure storedProcedure)
         {
             _httpContextAccessor = httpContextAccessor;
             _userRepository = userRepository;
@@ -46,6 +48,7 @@ namespace ExpenseTracker.Business
             _currentUser = _userRepository.GetCurrentUser();
             _groupRepository = groupRepository;
             _groupUserRepository = groupUserRepository;
+            _storedProcedure = storedProcedure;
         }
 
         public Task<UserVM> Get(Guid id)
@@ -230,7 +233,7 @@ namespace ExpenseTracker.Business
                     {
                         { "UserId", user.Id },
                     };
-                    await _userRepository.ExecuteStoredProcedure("CreateUserDefaults", parameters);
+                    await _storedProcedure.ExecuteStoredProcedure("CreateUserDefaults", parameters);
 
 
                     IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>

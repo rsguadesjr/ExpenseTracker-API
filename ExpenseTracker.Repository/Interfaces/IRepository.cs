@@ -19,8 +19,5 @@ namespace ExpenseTracker.Repository.Interfaces
         IQueryable<D> GetAll<D>(Expression<Func<T, bool>> predicate);
         IQueryable<T> GetAll(Expression<Func<T, bool>> predicate);
         Task SaveChanges();
-        Task ExecuteStoredProcedure(string storedProcedureName, Dictionary<string, object> parameters);
-        Task<List<D>> ExecuteStoredProcedure<D>(string storedProcedureName, Dictionary<string, object> parameters);
-        Task<DataSet> GetDataSet(string storedProcedureName, Dictionary<string, object> parameters);
     }
 }

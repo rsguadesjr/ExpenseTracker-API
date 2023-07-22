@@ -15,12 +15,12 @@ namespace ExpenseTracker.Business
     // TODO: Correct the use of UserId
     public class SummaryService : ISummaryService
     {
-        private readonly IRepository<Expense> _expenseRepository;
+        private readonly IStoredProcedure _storedProcedure;
         private readonly CurrentUserDetails _currentUser;
-        public SummaryService(IRepository<Expense> expenseRepository,
+        public SummaryService(IStoredProcedure storedProcedure,
                                 IUserRepository userRepository)
         {
-            _expenseRepository = expenseRepository;
+            _storedProcedure = storedProcedure;
             _currentUser = userRepository.GetCurrentUser();
         }
 
@@ -33,7 +33,7 @@ namespace ExpenseTracker.Business
                 { "UserId", _currentUser.UserId }
 
             };
-            return await _expenseRepository.ExecuteStoredProcedure<TotalPerCategory>("GetTotalAmountPerCategoryByDateRange", parameters);
+            return await _storedProcedure.ExecuteStoredProcedure<TotalPerCategory>("GetTotalAmountPerCategoryByDateRange", parameters);
         }
 
         public async Task<List<TotalPerTag>> GetTotalAmountPerTag(DateTime startDate, DateTime endDate)
@@ -45,7 +45,7 @@ namespace ExpenseTracker.Business
                 { "UserId", _currentUser.UserId }
 
             };
-            return await _expenseRepository.ExecuteStoredProcedure<TotalPerTag>("GetTotalAmountPerTagByDateRange", parameters);
+            return await _storedProcedure.ExecuteStoredProcedure<TotalPerTag>("GetTotalAmountPerTagByDateRange", parameters);
         }
 
         public async Task<List<MonthlySummaryByYearResult>> GetSummaryByDateRange(DateTime startDate, DateTime endDate)
@@ -57,7 +57,7 @@ namespace ExpenseTracker.Business
                 { "UserId", _currentUser.UserId }
 
             };
-            var result = await _expenseRepository.ExecuteStoredProcedure<MonthlySummaryByYearResult>("GetSummaryByDateRange", parameters);
+            var result = await _storedProcedure.ExecuteStoredProcedure<MonthlySummaryByYearResult>("GetSummaryByDateRange", parameters);
             return result;
         }
 
@@ -68,7 +68,7 @@ namespace ExpenseTracker.Business
                 { "Year", year },
                 { "UserId", _currentUser.UserId }
             };
-            var result = await _expenseRepository.ExecuteStoredProcedure<MonthlySummaryByYearResult>("GetMonthlySummaryByYear", parameters);
+            var result = await _storedProcedure.ExecuteStoredProcedure<MonthlySummaryByYearResult>("GetMonthlySummaryByYear", parameters);
             return result;
         }
 
@@ -81,7 +81,7 @@ namespace ExpenseTracker.Business
                 { "UserId", _currentUser.UserId }
 
             };
-            return await _expenseRepository.ExecuteStoredProcedure<DailyTotalAmount>("GetDailyTotalByDateRange", parameters);
+            return await _storedProcedure.ExecuteStoredProcedure<DailyTotalAmount>("GetDailyTotalByDateRange", parameters);
         }
 
         public async Task<List<TotalPerCategoryPerDate>> GetTotalAmountPerCategoryGroupByDate(DateTime startDate, DateTime endDate)
@@ -93,7 +93,7 @@ namespace ExpenseTracker.Business
                 { "UserId", _currentUser.UserId }
 
             };
-            return await _expenseRepository.ExecuteStoredProcedure<TotalPerCategoryPerDate>("GetTotalAmountPerCategoryGroupByDate", parameters);
+            return await _storedProcedure.ExecuteStoredProcedure<TotalPerCategoryPerDate>("GetTotalAmountPerCategoryGroupByDate", parameters);
         }
     }
 }
