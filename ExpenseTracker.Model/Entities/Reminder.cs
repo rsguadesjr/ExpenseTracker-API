@@ -22,7 +22,9 @@ namespace ExpenseTracker.Model.Entities
         public DateTime? ExpenseDate { get; set; }
         public int? Amount { get; set; }
         public int? CategoryId { get; set; }
+        public virtual Category Category { get; set; }
         public int? SourceId { get; set; }
+        public virtual Source Source { get; set; }
         public string? Tags { get; set; }
         public Guid? CreatedById { get; set; }
         public DateTime? CreatedDate { get; set; }

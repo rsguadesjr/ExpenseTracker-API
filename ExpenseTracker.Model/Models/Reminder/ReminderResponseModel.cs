@@ -16,7 +16,9 @@ namespace ExpenseTracker.Model.Models.Reminder
         public DateTime? ExpenseDate { get; set; }
         public int? Amount { get; set; }
         public int? CategoryId { get; set; }
+        public string? Category { get; set; }
         public int? SourceId { get; set; }
+        public string? Source { get; set; }
         public string Tags { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime? EndDate { get; set; }

@@ -39,29 +39,16 @@ namespace ExpenseTracker.Business
             {
                 throw new ApplicationException("Invalid request!");
             }
+
+            // get all reminders from the user;
+            var query = _reminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId);
+
+            //
+            query = query.Where(x => (!x.EndDate.HasValue && startDate >= x.StartDate) || (x.EndDate >= startDate && x.EndDate <= endDate));
+
             var result = await _reminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId ).ToListAsync();
 
-            return result;
-
-            //var reminderRepeat = _unitOfWork.ReminderRepeatRepository.GetAll(x => x.Reminder.UserId == user.UserId 
-            //                                                                    && (!x.EndDate.HasValue || (startDate >= x.StartDate && x.StartDate <= endDate)));
-            //var reminders = await _unitOfWork.ReminderRepository.GetAll(x => x.UserId == user.UserId
-            //                                                                    && reminderRepeat.Select(y => y.ReminderId).Contains(x.Id)).ToListAsync();
-            //var items = new List<ReminderDTO>();
-            //foreach (var reminder in reminders)
-            //{
-            //    var item = _mapper.Map<ReminderDTO>(reminder);
-
-            //    var repeat = reminderRepeat.FirstOrDefault(x => x.ReminderId == reminder.Id);
-            //    if (repeat != null)
-            //    {
-            //        item.Repeat = _mapper.Map<ReminderRepeatDTO>(repeat);
-            //    }
-
-            //    items.Add(item);
-            //}
-
-            //return items;
+            return await query.ToListAsync();
         }
 
         public async Task<ReminderResponseModel> Get(int reminderId)

@@ -15,7 +15,9 @@ namespace ExpenseTracker.Model.Mapping
             CreateMap<Reminder, ReminderResponseModel>()
                 .ForMember(x => x.Type, opt => opt.MapFrom(src => src.ReminderRepeat.Type))
                 .ForMember(x => x.StartDate, opt => opt.MapFrom(src => src.ReminderRepeat.StartDate))
-                .ForMember(x => x.EndDate, opt => opt.MapFrom(src => src.ReminderRepeat.EndDate));
+                .ForMember(x => x.EndDate, opt => opt.MapFrom(src => src.ReminderRepeat.EndDate))
+                .ForMember(x => x.Category, opt => opt.MapFrom(src => src.Category.Name))
+                .ForMember(x => x.Source, opt => opt.MapFrom(src => src.Source.Name));
 
             CreateMap<ReminderRequestModel, Reminder>();
             CreateMap<ReminderRequestModel, ReminderRepeat>()
