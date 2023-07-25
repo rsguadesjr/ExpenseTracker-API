@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ExpenseTracker.Model.Common;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace ExpenseTracker.Repository.Interfaces
 {
     public interface IStoredProcedure
     {
-        Task ExecuteStoredProcedure(string storedProcedureName, Dictionary<string, object> parameters);
-        Task<List<D>> ExecuteStoredProcedure<D>(string storedProcedureName, Dictionary<string, object> parameters);
-        Task<DataSet> GetDataSet(string storedProcedureName, Dictionary<string, object> parameters);
+        Task ExecuteStoredProcedure(string storedProcedureName, List<StoredProcedureRequestParameter> parameters);
+        Task<List<D>> ExecuteStoredProcedure<D>(string storedProcedureName, List<StoredProcedureRequestParameter> parameters);
+        Task<DataSet> GetDataSet(string storedProcedureName, List<StoredProcedureRequestParameter> parameters);
     }
 }

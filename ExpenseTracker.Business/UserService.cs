@@ -1,4 +1,5 @@
 ﻿using ExpenseTracker.Business.Interfaces;
+using ExpenseTracker.Model.Common;
 using ExpenseTracker.Model.Entities;
 using ExpenseTracker.Model.Models.User;
 using ExpenseTracker.Repository;
@@ -229,9 +230,9 @@ namespace ExpenseTracker.Business
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransactionAsync();
 
-                    var parameters = new Dictionary<string, object>
+                    var parameters = new List<StoredProcedureRequestParameter>
                     {
-                        { "UserId", user.Id },
+                        new StoredProcedureRequestParameter("UserId", user.Id)
                     };
                     await _storedProcedure.ExecuteStoredProcedure("CreateUserDefaults", parameters);
 
