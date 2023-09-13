@@ -1,4 +1,5 @@
-﻿using ExpenseTracker.Business.Interfaces;
+﻿using ExpenseTracker.Business;
+using ExpenseTracker.Business.Interfaces;
 using ExpenseTracker.Model.Common;
 using ExpenseTracker.Model.Models.Category;
 using ExpenseTracker.Model.Models.Expense;
@@ -60,6 +61,14 @@ namespace ExpenseTracker.Controllers
                 return BadRequest();
             }
 
+            return Ok();
+        }
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            // Do nothing for now
             return Ok();
         }
     }

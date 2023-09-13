@@ -38,9 +38,9 @@ namespace ExpenseTracker.Controllers
         }
 
 
-        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
+        [Authorize(Roles = "SuperAdmin, Admin, Standard, BasicExpense")]
         [HttpPost]
-        public async Task<IActionResult> Create(ExpenseDto dto)
+        public async Task<IActionResult> Create(ExpenseRequestModel dto)
         {
             if (!ModelState.IsValid)
             {
@@ -50,9 +50,9 @@ namespace ExpenseTracker.Controllers
             return Ok(await _expenseService.Create(dto));
         }
 
-        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
+        [Authorize(Roles = "SuperAdmin, Admin, Standard, BasicExpense")]
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] ExpenseDto dto)
+        public async Task<IActionResult> Update([FromRoute] Guid id, [FromBody] ExpenseRequestModel dto)
         {
             if (!ModelState.IsValid || id != dto.Id)
             {
@@ -62,7 +62,7 @@ namespace ExpenseTracker.Controllers
             return Ok(await _expenseService.Update(dto));
         }
 
-        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
+        [Authorize(Roles = "SuperAdmin, Admin, Standard, BasicExpense")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {

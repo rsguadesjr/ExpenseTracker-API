@@ -77,7 +77,7 @@ namespace ExpenseTracker.Business
                 {
                     await _unitOfWork.RollbackTransactionAsync();
                     // Log error
-                    throw ex;
+                    throw;
                 }
             }
 

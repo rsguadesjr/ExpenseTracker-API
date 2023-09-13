@@ -11,11 +11,9 @@ namespace ExpenseTracker.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IUserService _userService;
-        private IConfiguration _configuration;
-        public AuthController(IUserService userService, IConfiguration configuration)
+        public AuthController(IUserService userService)
         {
             _userService = userService;
-            _configuration = configuration;
         }
 
         [HttpPost("[action]")]
@@ -24,11 +22,11 @@ namespace ExpenseTracker.Controllers
             return Ok(await _userService.Login(token.Token));
         }
 
-        [HttpPost("[action]")]
-        public async Task<IActionResult> GoogleSignIn([FromBody] AuthRequest token)
-        {
 
-            return Ok(await _userService.Login(token));
+        [HttpPost("[action]")]
+        public async Task<IActionResult> LoginWithPassword([FromBody] AuthRequest token)
+        {
+            return Ok(await _userService.Login(token.Token));
         }
 
         [HttpPost("[action]")]

@@ -9,7 +9,7 @@ namespace ExpenseTracker.Business.Interfaces
 {
     public interface IReminderService
     {
-        public Task<List<ReminderResponseModel>> GetAll(DateTime startDate, DateTime endDate);
+        public Task<List<ReminderResponseModel>> GetAll(DateTime? startDate, DateTime? endDate);
         public Task<ReminderResponseModel> Get(int reminderId);
         public Task<ReminderResponseModel> Create(ReminderRequestModel dto);
         public Task<ReminderResponseModel> Update(ReminderRequestModel dto);

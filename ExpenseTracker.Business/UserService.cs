@@ -296,14 +296,6 @@ namespace ExpenseTracker.Business
                     // TODO: implement 
                 }
 
-                //// create custom claims here
-                //IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
-                //{
-                //    { "userId", userId }
-                //});
-                //await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseToken.Uid, customClaims);
-                //var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseToken.Uid);
-
                 result.Token = GenerateAccessToken(claims);
                 result.IsAuthorized = true;
             }
@@ -317,61 +309,8 @@ namespace ExpenseTracker.Business
         }
 
 
-        public async Task<AuthRequestResult> Login(AuthRequest auth)
-        {
-            var result = new AuthRequestResult();
-            if (string.IsNullOrWhiteSpace(auth?.Token))
-                return null;
-
-            try
-            {
-                var payload = await GoogleJsonWebSignature.ValidateAsync(auth.Token, new GoogleJsonWebSignature.ValidationSettings
-                {
-                    Audience = new[] { "476721190749-a1iafneed5dndqaoqk5l40mo3h6tpq1m.apps.googleusercontent.com" }
-                });
-                if (payload == null)
-                {
-                    
-                    result.IsAuthorized = false;
-                    return result;
-                }
-
-                var user = await _userRepository.Get(x => x.Email == payload.Email);
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim("UserId", user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.DisplayName),
-                    new Claim("PhotoUrl", payload.Picture)
-                };
-
-                //var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("ThisIsASecureKeyYeahBoy"));
-                //var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-                //var tokenOptions = new JwtSecurityToken(
-                //    issuer: _configuration["JwtSettings:Issuer"],
-                //    audience: _configuration["JwtSettings:Audience"],
-                //    claims: claims,
-                //    expires: DateTime.Now.AddMinutes(30),
-                //    signingCredentials: signingCredentials
-                //);
-
-                //var tokenString = new JwtSecurityTokenHandler().WriteToken(tokenOptions);
-                result.Token = GenerateAccessToken(claims);
-            }
-            catch(Exception ex)
-            {
-                throw;
-            }
-
-            return result;
-        }
-
-
         private string GenerateAccessToken(List<Claim> claims)
         {
-
-            var test = int.TryParse("a", out int dd);
-            
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtSettings:Key"]));
             var signingCredentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             int.TryParse(_configuration["JwtSettings:Duration"], out int duration);
@@ -379,7 +318,7 @@ namespace ExpenseTracker.Business
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddMinutes(duration),
+                expires: DateTime.UtcNow.AddMinutes(duration),
                 signingCredentials: signingCredentials
             );
 

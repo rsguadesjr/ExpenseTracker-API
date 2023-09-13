@@ -21,5 +21,14 @@ namespace ExpenseTracker.Controllers
         {
             return Ok(await _sourceService.GetAll());
         }
+
+
+        [Authorize(Roles = "SuperAdmin, Admin, Standard")]
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            // Do nothing for now
+            return Ok();
+        }
     }
 }

@@ -39,8 +39,8 @@ namespace ExpenseTracker.Repository
         public CurrentUserDetails GetCurrentUser()
         {
             var user = _httpContext.HttpContext.User;
-            var email = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-            var displayName = user.Claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
+            var email = user.Claims.FirstOrDefault(x => x.Type == "Email")?.Value;
+            var displayName = user.Claims.FirstOrDefault(x => x.Type == "Name")?.Value;
             var uniqueId = user.Claims.FirstOrDefault(x => x.Type == "UniqueId")?.Value;
             var userId = user.Claims.FirstOrDefault(x => x.Type== "UserId")?.Value;
             Guid.TryParse(userId, out Guid parsedUserId);

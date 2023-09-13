@@ -32,7 +32,7 @@ namespace ExpenseTracker.Business
             _reminderRepeatRepository = reminderRepeatRepository;
         }
 
-        public async Task<List<ReminderResponseModel>> GetAll(DateTime startDate, DateTime endDate)
+        public async Task<List<ReminderResponseModel>> GetAll(DateTime? startDate, DateTime? endDate)
         {
             var user = _userRepository.GetCurrentUser();
             if (user == null)
@@ -43,8 +43,13 @@ namespace ExpenseTracker.Business
             // get all reminders from the user;
             var query = _reminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId);
 
-            //
-            query = query.Where(x => (!x.EndDate.HasValue && startDate >= x.StartDate) || (x.EndDate >= startDate && x.EndDate <= endDate));
+            if (startDate.HasValue)
+                query = query.Where(x => startDate <= x.StartDate || !x.EndDate.HasValue);
+
+            if (endDate.HasValue)
+                query = query.Where(x => x.EndDate <= endDate || !x.EndDate.HasValue);
+
+            //query = query.Where(x => (!x.EndDate.HasValue && startDate >= x.StartDate) || (x.EndDate >= startDate && x.EndDate <= endDate));
 
             var result = await _reminderRepository.GetAll<ReminderResponseModel>(x => x.UserId == user.UserId ).ToListAsync();
 
@@ -87,7 +92,7 @@ namespace ExpenseTracker.Business
                 catch (Exception ex)
                 {
                     await _unitOfWork.RollbackTransactionAsync();
-                    throw ex;
+                    throw;
                 }
             }
 

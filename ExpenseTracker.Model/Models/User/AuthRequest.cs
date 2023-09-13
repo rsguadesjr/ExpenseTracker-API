@@ -9,6 +9,8 @@ namespace ExpenseTracker.Model.Models.User
     public class AuthRequest
     {
         public string Token { get; set; }
-        public string Provider { get; set; }
+        public string? Provider { get; set; }
+        public string? Email { get; set; }
+        public string? Password { get; set; }
     }
 }

@@ -28,11 +28,7 @@ namespace ExpenseTracker.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReminders(DateTime? startDate, DateTime? endDate)
         {
-            if (startDate == null || endDate == null)
-            {
-                return BadRequest();
-            }
-            return Ok(await _reminderService.GetAll(startDate.Value, endDate.Value));
+            return Ok(await _reminderService.GetAll(startDate, endDate));
         }
 
         [Authorize(Roles = "SuperAdmin, Admin, Standard")]

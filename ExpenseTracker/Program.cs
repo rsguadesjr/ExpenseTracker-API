@@ -9,6 +9,15 @@ using ExpenseTracker.Security;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using System.IdentityModel.Tokens.Jwt;
+using FirebaseAdmin.Auth;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Identity;
+using Microsoft.AspNetCore.OutputCaching;
+using System.Web;
+using Microsoft.Extensions.Azure;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using ExpenseTracker.CustomExceptionMiddleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,21 +33,29 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddHttpContextAccessor();
 
+if (builder.Environment.IsProduction())
+{
+    var keyVault = builder.Configuration["KeyVault:Uri"]!;
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVault), new DefaultAzureCredential(), new KeyVaultSecretManager());
+}
+else
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
+
+var firebaseConfig = builder.Configuration["Firebase:Config"];
+var jwtKey = builder.Configuration["JwtSettings:Key"];
+
+
 if (FirebaseApp.DefaultInstance == null)
 {
     FirebaseApp.Create(new AppOptions
     {
-        Credential = GoogleCredential.FromFile(builder.Configuration["Firebase:ConfigPath"])
+        Credential = GoogleCredential.FromJson(firebaseConfig),
+
     });
 }
 
-
-//var firebaseid = "rsg-expense-tracker";
-//builder.Services
-//    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>(JwtBearerDefaults.AuthenticationScheme, opt =>
-//    {
-//    } );
 JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 builder.Services.AddAuthentication(opt =>
 {
@@ -56,28 +73,21 @@ builder.Services.AddAuthentication(opt =>
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
             ValidAudience = builder.Configuration["JwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Key"])),
-            
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
+
             NameClaimType = "Name",
             RoleClaimType = "Role",
         };
 
-    })
-    .AddGoogle(options =>
-    {
-        options.ClientId = "476721190749-a1iafneed5dndqaoqk5ssl40mo3h6tpq1m.apps.googleusercontent.com";
-        options.ClientSecret = "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";
     });
 
-
-var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
+// Dependency Injection
 ExpenseTracker.Model.DependencyInjection.Initialize(builder.Services);
 ExpenseTracker.Business.DependencyInjection.Initialize(builder.Services);
 ExpenseTracker.Repository.DependencyInjection.Initialize(builder.Services, builder.Configuration);
 
 
-var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? new string[] { };
+var allowedOrigins = builder.Configuration.GetSection("CORS:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowedOrigins", b =>
@@ -109,6 +119,8 @@ app.UseRouting();
 app.UseCors("AllowedOrigins");
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.MapControllers();
 

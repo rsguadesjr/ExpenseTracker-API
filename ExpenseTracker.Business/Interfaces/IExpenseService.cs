@@ -10,10 +10,10 @@ namespace ExpenseTracker.Business.Interfaces
 {
     public interface IExpenseService
     {
-        Task<ExpenseDto> Get(Guid id);
-        Task<PaginatedList<ExpenseListResult>> GetAll(BaseSearchParameter searchParam);
-        Task<ExpenseListResult> Create(ExpenseDto dto);
-        Task<ExpenseListResult> Update(ExpenseDto dto);
+        Task<ExpenseRequestModel> Get(Guid id);
+        Task<PaginatedList<ExpenseResponseModel>> GetAll(BaseSearchParameter searchParam);
+        Task<ExpenseResponseModel> Create(ExpenseRequestModel dto);
+        Task<ExpenseResponseModel> Update(ExpenseRequestModel dto);
         Task Delete(Guid id);
     }
 }

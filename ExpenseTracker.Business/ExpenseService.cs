@@ -6,6 +6,7 @@ using ExpenseTracker.Model.Models.Expense;
 using ExpenseTracker.Model.Models.User;
 using ExpenseTracker.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Linq.Expressions;
 
 namespace ExpenseTracker.Business
@@ -18,12 +19,15 @@ namespace ExpenseTracker.Business
         private readonly IRepository<Expense> _expenseRepository;
         private readonly IRepository<ExpenseTag> _expenseTagRepository;
         private readonly IRepository<Tag> _tagRepository;
+        private readonly IConfiguration _configuration;
+        private readonly CurrentUserDetails _currentUser;
         public ExpenseService(IUnitOfWork unitOfWork,
                               IUserRepository userRepository,
                               IMapper mapper,
                               IRepository<Expense> expenseRepository,
                               IRepository<ExpenseTag> expenseTagRepository,
-                              IRepository<Tag> tagRepository)
+                              IRepository<Tag> tagRepository,
+                              IConfiguration configuration)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
@@ -31,15 +35,17 @@ namespace ExpenseTracker.Business
             _expenseRepository = expenseRepository;
             _expenseTagRepository = expenseTagRepository;
             _tagRepository = tagRepository;
+            _configuration = configuration;
+            _currentUser = _userRepository.GetCurrentUser();
         }
 
-        public async Task<ExpenseDto> Get(Guid id)
+        public async Task<ExpenseRequestModel> Get(Guid id)
         {
-            return await _expenseRepository.Get<ExpenseDto>(x => x.Id == id);
+            return await _expenseRepository.Get<ExpenseRequestModel>(x => x.Id == id);
         }
 
         // TODO: Correct the UserId value
-        public async Task<PaginatedList<ExpenseListResult>> GetAll(BaseSearchParameter searchParam)
+        public async Task<PaginatedList<ExpenseResponseModel>> GetAll(BaseSearchParameter searchParam)
         {
             // Get current user
             var currentUser = _userRepository.GetCurrentUser();
@@ -56,8 +62,8 @@ namespace ExpenseTracker.Business
                     && (currentUser.UserId == v.UserId);
 
             // query
-            var query = _expenseRepository.GetAll<ExpenseListResult>(predicate);
-            query = query.OrderByDescending(x => x.ExpenseDate).ThenBy(x => x.CreatedDate);
+            var query = _expenseRepository.GetAll<ExpenseResponseModel>(predicate);
+            query = query.OrderByDescending(x => x.ExpenseDate).ThenByDescending(x => x.ModifiedDate).ThenByDescending(x => x.CreatedDate);
             var totalRows = query.Count();
 
             if (searchParam.PageNumber != null && searchParam.TotalRows != null)
@@ -71,7 +77,7 @@ namespace ExpenseTracker.Business
             var data = await query.ToListAsync();
 
 
-            return new PaginatedList<ExpenseListResult>
+            return new PaginatedList<ExpenseResponseModel>
             {
                 CurrentPage = searchParam.PageNumber,
                 TotalRows = totalRows,
@@ -79,21 +85,19 @@ namespace ExpenseTracker.Business
             };
         }
 
-        public async Task<ExpenseListResult> Create(ExpenseDto dto)
+        public async Task<ExpenseResponseModel> Create(ExpenseRequestModel dto)
         {
             using (await _unitOfWork.BeginTransactionAsync())
             {
                 try
                 {
-                    // get current user
-                    var transactionDate = DateTime.UtcNow;
-                    var user = _userRepository.GetCurrentUser();
-
-                    // map user to the expense entry
-                    var expense = _mapper.Map<Expense>(dto);
-                    expense.UserId= user.UserId;
+                    await RestrictedUserCheck();
                     
-                    // create expense entry
+                    var transactionDate = DateTime.UtcNow;
+
+                    var expense = _mapper.Map<Expense>(dto);
+                    expense.UserId= _currentUser.UserId;
+                    
                     var result = await _expenseRepository.Create(expense);
                     dto.Id = result.Id;
 
@@ -109,10 +113,10 @@ namespace ExpenseTracker.Business
                 }
             }
 
-            return await _expenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
+            return await _expenseRepository.Get<ExpenseResponseModel>(x => x.Id == dto.Id);
         }
 
-        public async Task<ExpenseListResult> Update(ExpenseDto dto)
+        public async Task<ExpenseResponseModel> Update(ExpenseRequestModel dto)
         {
             if (dto?.Id == null)
                 throw new ApplicationException("Invalid request model");
@@ -121,10 +125,12 @@ namespace ExpenseTracker.Business
             {
                 try
                 {
+                    await RestrictedUserCheck();
+
                     var transactionDate = DateTime.UtcNow;
                     var expense = _mapper.Map<Expense>(dto);
 
-                    var props = new List<string>
+                    var propertiesToUpdate = new List<string>
                     {
                         nameof(Expense.Amount),
                         nameof(Expense.ExpenseDate),
@@ -132,7 +138,7 @@ namespace ExpenseTracker.Business
                         nameof(Expense.CategoryId),
                         nameof(Expense.SourceId)
                     };
-                    await _expenseRepository.Update(expense.Id, expense, props);
+                    await _expenseRepository.Update(expense.Id, expense, propertiesToUpdate);
                     await AddOrDeleteTags(dto.Id.Value, dto.Tags);
 
                     await _unitOfWork.SaveChangesAsync(transactionDate);
@@ -146,7 +152,7 @@ namespace ExpenseTracker.Business
             }
             
 
-            return await _expenseRepository.Get<ExpenseListResult>(x => x.Id == dto.Id);
+            return await _expenseRepository.Get<ExpenseResponseModel>(x => x.Id == dto.Id);
         }
 
         public async Task Delete(Guid id)
@@ -155,6 +161,8 @@ namespace ExpenseTracker.Business
             {
                 try
                 {
+                    await RestrictedUserCheck();
+
                     await _expenseRepository.Delete(id);
                     await _unitOfWork.SaveChangesAsync();
                     await _unitOfWork.CommitTransactionAsync();
@@ -203,6 +211,21 @@ namespace ExpenseTracker.Business
 
                 // add expense tag relationship
                 await _expenseTagRepository.Create(expenseTag);
+            }
+        }
+
+        // check for restricted users / test users
+        private async Task RestrictedUserCheck()
+        {
+            List<string> restrictedUsers = _configuration.GetSection("Restrictions:UserEmails").Get<List<string>>() ?? new List<string>();
+            if (restrictedUsers.Contains(_currentUser.Email))
+            {
+                var dailyTransactionLimit = _configuration.GetSection("Restrictions:DailyTransactionLimit").Get<int>();
+                var totalTransactions = await _expenseRepository.GetAll(x => x.UserId == _currentUser.UserId && x.CreatedDate >= DateTime.Today).CountAsync();
+                if (totalTransactions >= dailyTransactionLimit)
+                {
+                    throw new ApplicationException("User has reached the daily transaction limit");
+                }
             }
         }
     }
