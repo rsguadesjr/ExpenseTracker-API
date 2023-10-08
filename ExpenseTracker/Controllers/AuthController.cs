@@ -10,10 +10,14 @@ namespace ExpenseTracker.Controllers
     [ApiController]
     public class AuthController : ControllerBase
     {
-        private readonly IUserService _userService;
-        public AuthController(IUserService userService)
+        private readonly IAccountService _userService;
+        private readonly IConfiguration _configuration;
+        private readonly AppUserManagementSetting _settings;
+        public AuthController(IAccountService userService, IConfiguration configuration)
         {
             _userService = userService;
+            _configuration = configuration;
+            _settings = _configuration.GetSection("AppUserManagement").Get<AppUserManagementSetting>();
         }
 
         [HttpPost("[action]")]
@@ -26,14 +30,25 @@ namespace ExpenseTracker.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> LoginWithPassword([FromBody] AuthRequest token)
         {
+            if (_settings.DisableEmailPasswordLogin)
+                return BadRequest();
+
             return Ok(await _userService.Login(token.Token));
         }
 
         [HttpPost("[action]")]
         public async Task<IActionResult> RegisterWithEmailAndPassword([FromBody] EmailPasswordRegistrationRequest request)
         {
+            if (_settings.DisableRegistration)
+                return BadRequest();
 
             return Ok(await _userService.Register(request));
         }
+
+        //[HttpPost("[action]")]
+        //public async Task<IActionResult> Register([FromBody] AuthRequest token)
+        //{
+        //    return Ok(await _userService.Register(token.Token));
+        //}
     }
 }

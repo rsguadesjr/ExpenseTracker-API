@@ -51,8 +51,7 @@ if (FirebaseApp.DefaultInstance == null)
 {
     FirebaseApp.Create(new AppOptions
     {
-        Credential = GoogleCredential.FromJson(firebaseConfig),
-
+        Credential = GoogleCredential.FromJson(firebaseConfig)
     });
 }
 

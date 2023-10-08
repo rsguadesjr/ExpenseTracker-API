@@ -14,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Business
 {
-    // TODO: Correct the use of UserId
     public class SummaryService : ISummaryService
     {
         private readonly IStoredProcedure _storedProcedure;

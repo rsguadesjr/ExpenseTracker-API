@@ -17,7 +17,6 @@ namespace ExpenseTracker.Repository
         {
             services.AddDbContext<ExpenseTrackerContext>(opt => opt.UseSqlServer(config.GetConnectionString("DefaultConnection")));
             services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-            services.AddScoped<IRepository<User>, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IRepository<ReminderRepeat>, ReminderRepeatRepository>();

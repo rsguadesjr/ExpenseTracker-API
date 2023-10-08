@@ -10,7 +10,8 @@ namespace ExpenseTracker.Model.Models.User
     {
         public bool IsAuthorized { get; set; } = false;
         public bool IsNewUser { get; set; } = true;
-        public bool NeedToCompleteProfile { get; set; } = true;
+        public bool IsProfileComplete { get; set; } = true;
+        public bool IsEmailVerified { get; set; } = false;
         public string Token { get; set; } = string.Empty;
 
     }

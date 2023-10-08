@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTracker.Business
 {
-    public class UserService : IUserService
+    public class AccountService : IAccountService
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUserRepository _userRepository;
@@ -33,7 +33,7 @@ namespace ExpenseTracker.Business
         private readonly IRepository<Group> _groupRepository;
         private readonly IRepository<GroupUser> _groupUserRepository;
         private readonly IStoredProcedure _storedProcedure;
-        public UserService(IHttpContextAccessor httpContextAccessor,
+        public AccountService(IHttpContextAccessor httpContextAccessor,
                             IUserRepository userRepository,
                             IConfiguration configuration,
                             IUnitOfWork unitOfWork,
@@ -152,51 +152,9 @@ namespace ExpenseTracker.Business
             }
         }
 
-        public async Task<UserRegistrationResponse> Register()
+        public async Task<UserRegistrationResponse> Register(EmailPasswordRegistrationRequest requestData)
         {
-            var claims = _httpContextAccessor.HttpContext.User.Claims;
-            var email = claims.FirstOrDefault(x => x.Type == ClaimTypes.Email)?.Value;
-            var name = claims.FirstOrDefault(x => x.Type == ClaimTypes.Name)?.Value;
-            var isEmailVerified = bool.TryParse(claims.FirstOrDefault(x => x.Type == "email_verified")?.Value, out bool result);
-            var uniqueId = claims.FirstOrDefault(x => x.Type == "user_id")?.Value;
-
-
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(uniqueId))
-            {
-                return new UserRegistrationResponse
-                {
-                    IsSuccess = false,
-                    ErrorMessages = new List<string> { "Invalid Token" }
-                };
-            }
-
-            var emailVerificationLink = string.Empty;
-            if (!isEmailVerified)
-            {
-                emailVerificationLink = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).GenerateEmailVerificationLinkAsync(email);
-            }
-
-
-            var user = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = email,
-                UniqueId= uniqueId,
-                DisplayName = name ?? string.Empty
-            };
-
-            await _userRepository.Create(user);
-            await _userRepository.SaveChanges();
-
-            return new UserRegistrationResponse
-            {
-                IsSuccess = true,
-                EmailVerificationLink = emailVerificationLink
-            };
-        }
-        public async Task<AuthRequestResult> Register(EmailPasswordRegistrationRequest requestData)
-        {
-            var result = new AuthRequestResult();
+            var result = new UserRegistrationResponse();
             using (await _unitOfWork.BeginTransactionAsync())
             {
                 try
@@ -237,21 +195,22 @@ namespace ExpenseTracker.Business
                     await _storedProcedure.ExecuteStoredProcedure("CreateUserDefaults", parameters);
 
 
-                    IReadOnlyDictionary<string, object> customClaims = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>
-                    {
-                        { "userId", user.Id }
-                    });
-                    await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).SetCustomUserClaimsAsync(firebaseUser.Uid, customClaims);
-                    var customToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).CreateCustomTokenAsync(firebaseUser.Uid);
-
-                    result.Token = customToken;
-                    result.IsAuthorized = true;
-
+                    result.IsSuccess = true;
+                    result.AllowToLogin = true;
                 }
                 catch (Exception ex)
                 {
-                    result.IsAuthorized = false;
                     await _unitOfWork.RollbackTransactionAsync();
+
+                    if (ex is FirebaseAuthException && (ex as FirebaseAuthException).AuthErrorCode == AuthErrorCode.EmailAlreadyExists)
+                    {
+                        
+                        result.ErrorMessages.Add("User already exists. Please try to login or reset your password.");
+                        result.AllowToLogin = true;
+                    }
+
+                    result.ErrorMessages.Add(ex.Message);
+                    result.IsSuccess = false;
                 }
             }
 
@@ -260,6 +219,48 @@ namespace ExpenseTracker.Business
             
         }
 
+        private async Task<UserResponseModel> Register(string token)
+        {
+            Guid userId = Guid.NewGuid();
+            using (await _unitOfWork.BeginTransactionAsync())
+            {
+                try
+                {
+                    var firebaseToken = await FirebaseAuth.GetAuth(FirebaseApp.DefaultInstance).VerifyIdTokenAsync(token);
+                    var firebaseClaims = firebaseToken.Claims;
+
+                    var email = firebaseClaims.FirstOrDefault(x => x.Key == "email");
+                    var picture = firebaseClaims.FirstOrDefault(x => x.Key == "picture");
+                    var isEmailVerified = firebaseClaims.FirstOrDefault(x => x.Key == "email_verified");
+                    var displayName = firebaseClaims.FirstOrDefault(x => x.Key == "name");
+
+                    var newUser = new User
+                    {
+                        Id = userId,
+                        Email = email.Value.ToString(),
+                        UniqueId = firebaseToken.Uid.ToString(),
+                        DisplayName = displayName.Value.ToString(),
+                    };
+                    await _userRepository.Create(newUser);
+                    await _unitOfWork.SaveChangesAsync();
+                    await _unitOfWork.CommitTransactionAsync();
+
+                    var parameters = new List<StoredProcedureRequestParameter>
+                    {
+                        new StoredProcedureRequestParameter("UserId", userId)
+                    };
+                    await _storedProcedure.ExecuteStoredProcedure("CreateUserDefaults", parameters);
+                }
+                catch (Exception ex)
+                {
+                    await _unitOfWork.RollbackTransactionAsync();
+                    throw;
+
+                }
+            }
+
+            return await _userRepository.Get<UserResponseModel>(x => x.Id == userId);
+        }
 
         public async Task<AuthRequestResult> Login(string token)
         {
@@ -271,38 +272,37 @@ namespace ExpenseTracker.Business
 
                 var firebaseClaims = firebaseToken.Claims;
 
-                // TODO: remove initialization here, other value will be in the else statement below
-                Guid userId = Guid.NewGuid();
                 var claims = new List<Claim>();
                 var user = await _userRepository.Get<UserResponseModel>(x => x.UniqueId == firebaseToken.Uid);
+
+                // Register if not yet exists in db
+                if (user == null)
+                {
+                    user = await Register(token);
+                }
+
                 if (user != null)
                 {
-                    result.NeedToCompleteProfile = false;
-                    result.IsNewUser = false;
-                    userId = user.Id;
-
                     var name = firebaseClaims.FirstOrDefault(x => x.Key == "name");
                     var picture = firebaseClaims.FirstOrDefault(x => x.Key == "picture");
+                    var isEmailVerified = firebaseClaims.FirstOrDefault(x => x.Key == "email_verified");
 
                     claims.Add(new Claim("Email", user.Email));
                     claims.Add(new Claim("UserId", user.Id.ToString()));
                     claims.Add(new Claim("Name", user.DisplayName ?? name.Value?.ToString() ?? string.Empty));
                     claims.Add(new Claim("PhotoUrl", picture.Value?.ToString() ?? string.Empty));
                     claims.AddRange(user.Roles.Select(r => new Claim("Role", r.Name)));
-                }
-                else
-                {
-                    // TODO: add flag to check if new users will be auto registered
-                    // TODO: implement 
+
+                    result.Token = GenerateAccessToken(claims);
+                    result.IsAuthorized = true;
+                    result.IsEmailVerified = bool.Parse(isEmailVerified.Value.ToString());
                 }
 
-                result.Token = GenerateAccessToken(claims);
-                result.IsAuthorized = true;
             }
             catch (Exception ex)
             {
                 result.IsAuthorized = false;
-
+                // throw ?
             }
 
             return result;

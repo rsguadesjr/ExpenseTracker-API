@@ -1,4 +1,5 @@
 ﻿using ExpenseTracker.Business.Interfaces;
+using ExpenseTracker.Model.Models.User;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,19 +10,16 @@ namespace ExpenseTracker.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class UsersController : ControllerBase
+    public class AccountController : ControllerBase
     {
-        private readonly IUserService _userService;
-        public UsersController(IUserService userService)
+        private readonly IAccountService _userService;
+        private readonly IConfiguration _configuration;
+        private readonly AppUserManagementSetting _settings;
+        public AccountController(IAccountService userService, IConfiguration configuration)
         {
             _userService = userService;
-        }
-
-        [HttpPost("Register")]
-        public async Task<IActionResult> Register()
-        {
-            await _userService.Register();
-            return Ok();
+            _configuration = configuration;
+            _settings = _configuration.GetSection("AppUserManagement").Get<AppUserManagementSetting>();
         }
 
 

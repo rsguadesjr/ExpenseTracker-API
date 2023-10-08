@@ -14,7 +14,7 @@ namespace ExpenseTracker.Business
         public static void Initialize(IServiceCollection services)
         {
             services.AddScoped<IExpenseService, ExpenseService>();
-            services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IAccountService, AccountService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<ISourceService, SourceService>();
             services.AddScoped<ISummaryService, SummaryService>();

@@ -8,13 +8,9 @@ namespace ExpenseTracker.Model.Models.User
 {
     public class UserRegistrationResponse
     {
-        public bool IsSuccess { get; set; }
+        public bool AllowToLogin { get; set; } = false;
+        public bool IsSuccess { get; set; } = false;
         public string EmailVerificationLink { get; set; }
-        public List<string> ErrorMessages { get; set; }
-        public UserRegistrationResponse()
-        {
-            ErrorMessages = new List<string>();
-            IsSuccess = false;
-        }
+        public List<string> ErrorMessages { get; set; } = new List<string>();
     }
 }

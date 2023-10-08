@@ -23,6 +23,7 @@ namespace ExpenseTracker.Model.Entities
         public DateTime? CreatedDate { get; set; }
         public Guid? ModifiedById { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public bool IsProfileComplete { get; set; } = false;
         public virtual ICollection<UserRole> UserRoles { get; set; }
     }
 }

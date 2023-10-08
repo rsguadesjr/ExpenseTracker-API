@@ -19,6 +19,7 @@ namespace ExpenseTracker.Model.Models.User
         public string? PhotoUrl { get; set; }
         public DateTime? CreatedDate { get; set; }
         public DateTime? ModifiedDate { get; set; }
+        public bool IsProfileComplete { get; set; }
         public List<RoleResponseModel> Roles { get; set; }
 
     }
